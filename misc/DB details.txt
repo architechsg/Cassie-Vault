@@ -1,5 +1,0 @@
-CMLG_DB_NAME: cmlg_staging
-      CMLG_DB_USER: weixing_staging
-      CMLG_DB_PASSWORD: "*6ez0G9d0"
-      CMLG_DB_HOST: s2.architech.sg
-      CMLG_DB_PORT: "3306"
