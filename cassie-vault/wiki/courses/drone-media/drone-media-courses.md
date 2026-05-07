@@ -15,6 +15,7 @@ Provided by **Cantley LifeCare Pte Ltd**.
 - **Pricing:** Full $1,744.00 / PR $944.00 / MCES $624.00
 - **Note:** Funding period ended Jul 2025 — **confirm current subsidy status with staff before booking**
 - **Type:** WSQ
+- **Course structure:** Day 1 = theory (at Toa Payoh training centre). Days 2–4 = practical flying sessions at **Sin Ming Open Field** (not at the training centre). Students are added to a WhatsApp group by the trainer to coordinate practical session logistics. Bring NRIC/FIN and SingPass on all days.
 
 ---
 
@@ -41,6 +42,7 @@ Provided by **Cantley LifeCare Pte Ltd**.
 - **Pricing:** Full $981.00 / PR $531.00 / MCES $351.00
 - **Funding:** SFC eligible
 - **Type:** WSQ
+- **Also marketed as:** "Mobile Photography & Videography for Beginners" — this is the same course under a different marketing name. Both names refer to CT61.
 
 ---
 

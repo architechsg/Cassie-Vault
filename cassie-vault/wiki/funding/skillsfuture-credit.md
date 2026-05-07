@@ -23,6 +23,18 @@ Singapore Citizens aged **25 and above**.
 ## Which Courses Are Eligible
 All WSQ courses with a TGS code are eligible. Private/non-WSQ workshops (no TGS code) are not.
 
+## Mid-Career Enhanced SFC — Important Distinction
+The government periodically tops up SkillsFuture Credit with a **Mid-Career Enhanced Credit** (e.g. $4,000 top-up for eligible SC aged 40+). This is a *separate* credit from your regular SFC balance and has its own approved course list — **not all Coursemology courses qualify**.
+
+When checking your SFC balance at myskillsfuture.gov.sg, click the arrow beside your total to see the breakdown between:
+- **Opening / Regular credit** — usable for any eligible WSQ course
+- **Mid-Career Enhanced credit** — restricted to approved courses only
+
+If a student tries to claim using Mid-Career credit for a non-approved course, the claim will fail. When in doubt, contact us at hello@coursemology.sg before registering.
+
+## SFC Submission Portal
+After registering, Coursemology sends you a personalised SFC submission link via **one.coursemology.sg**. Use that link (log in with SingPass) to submit your claim for the exact course and amount. If the link returns an error, check that your NRIC/FIN and date of birth match exactly. Contact us at hello@coursemology.sg if issues persist.
+
 ## Can I Stack SFC With SSG Subsidy?
 Yes. SSG subsidy reduces the base price first. SFC then offsets the remaining amount you owe after the subsidy.
 

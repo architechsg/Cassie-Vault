@@ -31,3 +31,15 @@ A: WSQ certificates are issued electronically via myskillsfuture.sg. See [[polic
 
 **Q: Can I retake the exam if I fail?**
 A: Generally no. Trainees who fail may not be eligible for subsidies and could be charged the full fee. Check with staff for specific courses: [[company/contact]].
+
+**Q: Are the courses available online?**
+A: No. All courses at Coursemology.sg are conducted face-to-face at our training centres. There is no online or virtual option. This is required for WSQ accreditation and for SFA-mandated courses like Food Safety.
+
+**Q: I'm on a Work Permit — can I attend and get a certificate?**
+A: Yes. Work Permit (WP) holders are welcome to attend our courses. SSG subsidies and SkillsFuture Credit are not available for WP holders, so the full course fee applies. Upon passing, you will receive the same WSQ Statement of Attainment as any other participant. On the day, bring your FIN card and ensure you have a Gmail account for e-attendance (SingPass e-attendance is for Singapore Citizens and PRs only).
+
+**Q: Can I use my Mid-Career SkillsFuture Credit (the extra $4,000 top-up) for these courses?**
+A: Not all courses qualify for the Mid-Career Enhanced SFC credit. Regular SkillsFuture Credit can be used for any WSQ course with a TGS code, but the Mid-Career top-up credit has a separate approved course list. Check your SFC balance breakdown at myskillsfuture.gov.sg to see which credit type you have. If in doubt, contact us at hello@coursemology.sg before registering.
+
+**Q: My food safety certificate is expiring soon. Do I need to redo the full course?**
+A: No. If your Food Safety Level 1 SOA has expired (or is about to expire at the 5-year mark), you only need to take the shorter Refresher course — not the full Level 1 again. The Refresher is 4.5 hours and costs less. See [[courses/food-safety/food-safety-level-1-refresher-english]]. After the first renewal (at 5 years), subsequent renewals are every 10 years.

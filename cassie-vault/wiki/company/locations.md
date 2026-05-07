@@ -15,6 +15,7 @@ Coursemology.sg operates four training centres in Singapore.
 - **Phone:** 6255 5584 / 6255 5108
 - **WhatsApp:** 9866 0772
 - **Notes:** Only location that accepts **Cash** payments. Main administrative office.
+- ⚠️ **No lift — access by staircase only.** Please plan accordingly if you have mobility concerns.
 
 ---
 

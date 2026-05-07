@@ -65,6 +65,9 @@ All cleaning courses are provided by **Associates Consulting Pte Ltd** and are p
 
 ---
 
+## Work Permit Holders
+Work Permit (WP) holders are eligible to attend cleaning courses. SSG subsidies and SkillsFuture Credit do not apply — the **full fee** is payable. Upon passing, WP holders receive the same WSQ Statement of Attainment and can use it for NEA licensing requirements. On the day, WP holders should bring their FIN card and a Gmail account for e-attendance (SingPass is for SC/PR only).
+
 ## Policies & Funding
 [[policies/deposit-policy]] | [[policies/refund-cancellation]] | [[policies/attendance-requirements]]
 [[funding/skillsfuture-credit]] | [[funding/utap-ntuc]] | [[funding/ssg-subsidies]]
