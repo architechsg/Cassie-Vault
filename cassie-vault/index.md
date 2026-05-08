@@ -1,7 +1,7 @@
 # Cassie Wiki — Master Index
 
 *Read this file first on every query. Find the relevant pages, then drill into them.*
-*Last updated: 2026-05-08*
+*Last updated: 2026-05-08 (CATS deep-dive session)*
 
 ---
 
@@ -37,6 +37,7 @@
 | [[funding/utap-ntuc]] | NTUC members: 50% co-funding, capped $250/yr |
 | [[funding/corporate-funding]] | Absentee Payroll, ETSS, SFEC for companies |
 | [[funding/pricing-tiers]] | How GST + subsidy combine; worked example |
+| [[funding/corporate-invoicing]] | Invoice format (ATT/AB/CT-OLA-XXXXX), payment terms, GST, how to pay corporate invoices |
 
 ---
 
@@ -162,6 +163,7 @@
 | [[concepts/wsq-explained]] | What WSQ means, SOA, TGS codes, difference from non-WSQ |
 | [[concepts/singpass-attendance]] | Why Singpass App is mandatory, how e-attendance works |
 | [[concepts/ola-platform]] | OLA scheduling platform, how to use the schedule API |
+| [[concepts/wsq-registration-data]] | What personal info students must provide when registering for WSQ/SSG-funded courses |
 
 ---
 

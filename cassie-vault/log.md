@@ -5,6 +5,35 @@ Types: `ingest`, `query`, `lint`, `update`
 
 ---
 
+## [2026-05-08] update | YanHui confirmed: LTVP+ eligible for SSG subsidy at 75% attendance
+- UPDATED: ssg-subsidies.md — added LTVP+ row to subsidy tiers table (eligible, 75% attendance required)
+
+## [2026-05-08] update | Dad confirmed: MacPherson closed, cash rarely used, 75% attendance correct
+- **REMOVED**: MacPherson venue from locations.md — dad confirmed "MacPherson is no longer, closed liao"
+- Updated locations.md intro from "six" to "five" training locations; removed MacPherson from "Which Courses Run Where"
+- **UPDATED**: payment-methods.md Cash row — "rarely collected in practice, PayNow preferred" (confirmed by dad; YanHui to finalise exact policy)
+- Removed "Cash only at Toa Payoh" note from Toa Payoh entry in locations.md
+- **RESOLVED**: 75% attendance is correct for SSG funding eligibility (dad confirmed); CATS kform 80% figure is wrong — vault unchanged, already correct
+- ⚠️ STILL OPEN: LTVP+ SSG subsidy rate — dad confirmed eligible but rate unknown; ask YanHui
+- ⚠️ STILL OPEN: Exact cash payment policy — ask YanHui to confirm
+
+## [2026-05-08] update | Final vault sync — remaining business-logic files + full DB data re-check
+- Read remaining 11 business-logic files: agent-attribution-and-sales, ar-aging-and-soa, daily-closing, sfc-invoicing, penalty, zoho-integration, xero-invoice-gen-workflow, xero-payment-confirmed-flow-v2, class-count-and-revenue-reports, global-vba-helpers, auth-and-navigation
+- Finding: all 11 are internal-ops only (sales reporting, AR aging, daily closing, Xero/Zoho integrations, VBA helpers, auth) — no new customer-facing content identified
+- Re-checked DB data folder (35 files): found MacPherson and Ubi Workshop missing from locations page
+- **UPDATED**: `wiki/company/locations.md` — added MacPherson (401 MacPherson Road, #01-12, MacPherson Mall, S368125) and Ubi Workshop (01-434 Ubi Road 1, S408701); updated intro from "four" to "six" training locations
+- ⚠️ OPEN: LTVP+ student type appears in DB — eligibility for SSG subsidies unclear. Needs Mark's confirmation before adding to vault.
+
+## [2026-05-08] ingest | CATS system deep-dive — new pages and policy updates from internal admin system
+- Source: CATS (Coursemology Admin Terminal System) — 20+ business-logic markdown files covering enrolments, invoicing, payments, refunds, reschedules, deposits, SSG grant claims
+- **NEW**: `wiki/concepts/wsq-registration-data.md` — complete list of personal data required for WSQ/SSG-funded course registration (NRIC, DOB, salary, education, etc.)
+- **NEW**: `wiki/funding/corporate-invoicing.md` — invoice format (ATT/AB/CT-OLA-XXXXX), which entity issues, payment terms, GST at 9%, how to pay
+- **UPDATED**: `wiki/company/overview.md` — added billing abbreviations (ATT/AB/CT) and invoice number format; link to corporate-invoicing page
+- **UPDATED**: `wiki/policies/refund-cancellation.md` — added bank account requirement for Finance Bank Refund (bank transfer) type
+- **UPDATED**: `wiki/faq/registration.md` — 2 new Q&As: WSQ data requirements, corporate invoice reading guide
+- **UPDATED**: `index.md` — added entries for 2 new pages
+- ⚠️ ATTENTION: CATS kform doc references SSG attendance requirement as **80%**, but the vault currently says **75%**. Needs verification with Mark before changing.
+
 ## [2026-05-08] update | Real-world KB gaps patched from WhatsApp conversation analysis
 - Source: 3 WhatsApp conversation files (Chat AB Course Conversation, Chat CT Course Conversation, Conversation) containing ~15 real customer journeys via SalesIQ → Coursemology.sg
 - faq/general.md — added 4 new Q&As: (1) all courses are face-to-face only (no online option); (2) Work Permit holders can attend and receive WSQ cert, full fee applies, Gmail for e-attendance; (3) Mid-Career Enhanced SFC has separate approved course list, not all Coursemology courses qualify; (4) food safety cert renewal — refresher (not full course) at 5-year mark, then every 10 years

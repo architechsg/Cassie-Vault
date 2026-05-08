@@ -10,7 +10,7 @@ last_updated: 2026-05-08
 | Method | Notes |
 |---|---|
 | **Bank Transfer** | Main method. Two accounts: OLA Bank Transfer or ATT Bank Transfer depending on course provider. |
-| **Cash** | Available at **Toa Payoh location only**. |
+| **Cash** | Rarely collected in practice — PayNow is now preferred. Contact staff to confirm if needed. |
 | **Cheque** | Accepted. Typically used by corporate clients. |
 | **SkillsFuture Credit (SFC)** | Claim at myskillsfuture.gov.sg before course start date using the TGS code. See [[funding/skillsfuture-credit]]. |
 | **PayNow** | Available. UEN depends on course provider — see PayNow UENs below. |
@@ -40,4 +40,4 @@ A refundable admin deposit is collected at enrolment. See [[policies/deposit-pol
 ## Related
 - [[funding/skillsfuture-credit]] — how to claim SFC
 - [[policies/deposit-policy]] — deposit amounts and refund conditions
-- [[company/locations]] — Cash only at Toa Payoh
+- [[company/locations]] — training venue addresses

@@ -9,13 +9,15 @@ Coursemology.sg is a Singapore training platform established in 2016. It offers 
 
 ## Three SSG-Registered Training Providers
 
-| Provider | UEN | Courses |
+| Provider | Invoice Abbreviation | Courses |
 |---|---|---|
-| **AesthetiCar Pte Ltd** | 201400645K | Food Safety, Maintenance, Baking & Cooking, AI & Tech |
-| **Associates Consulting Pte Ltd** | — | Cleaning, MS Office, Admin/HR, First Aid, Beauty |
-| **Cantley LifeCare Pte Ltd** | — | Drone & Digital Media, Ecommerce, AI & Tech |
+| **AesthetiCar Pte Ltd** | ATT | Food Safety, Maintenance, Baking & Cooking, AI & Tech |
+| **Associates Consulting Pte Ltd** | AB | Cleaning, MS Office, Admin/HR, First Aid, Beauty |
+| **Cantley LifeCare Pte Ltd** | CT | Drone & Digital Media, Ecommerce, AI & Tech |
 
 All three providers operate under the Coursemology.sg brand and share the same contact details and booking platform (OLA).
+
+Corporate invoices are issued by the relevant provider entity and numbered in the format **[Abbreviation]-OLA-[Number]** (e.g. `ATT-OLA-12345` for an AesthetiCar-administered course). See [[funding/corporate-invoicing]] for details.
 
 ## Operating Hours
 Monday to Sunday, **8:30am – 6:00pm**

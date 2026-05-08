@@ -28,6 +28,9 @@ If you can't attend but want to take the course later, consider rescheduling ins
 ## Deposit Details
 See [[policies/deposit-policy]] for deposit amounts and the four refund types used.
 
+## Bank Transfer Refunds
+If your refund is to be paid via bank transfer (Finance Bank Refund), you must have your **bank name and account number** registered with Coursemology. Please provide these details when contacting staff to initiate your refund. Without them, the transfer cannot be processed.
+
 ## SSG-Funded Enrolments
 If you claimed SkillsFuture Credit or SSG subsidy and then cancel, the grant claim may need to be amended separately. Coursemology staff handle this — contact [[company/contact]] for guidance.
 

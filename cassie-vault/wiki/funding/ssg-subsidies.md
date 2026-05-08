@@ -15,6 +15,7 @@ Skills & Competency (SSG) subsidies reduce the course fee for eligible Singapore
 | Singapore Citizen aged 40+ | ~65% off full fee | MCES price |
 | Singapore PR aged 21+ | ~30% off full fee | PR price |
 | SME-sponsored employee (any age, SC/PR) | Up to 90% (ETSS) | Varies |
+| LTVP+ holder | SSG subsidy eligible — 75% attendance required | Subsidised fee |
 | Foreigner / under 21 / ineligible SC | No subsidy | Full fee |
 
 ## Eligibility Rules (all must be met)

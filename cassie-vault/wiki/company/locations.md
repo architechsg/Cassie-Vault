@@ -5,7 +5,7 @@ last_updated: 2026-05-08
 
 # Training Locations
 
-Coursemology.sg operates four training centres in Singapore.
+Coursemology.sg operates five training locations in Singapore. The four main centres below handle most courses. Ubi Workshop is an additional venue used for selected courses.
 
 ---
 
@@ -14,7 +14,7 @@ Coursemology.sg operates four training centres in Singapore.
 - **Landmark:** Above KFC
 - **Phone:** 6255 5584 / 6255 5108
 - **WhatsApp:** 9866 0772
-- **Notes:** Only location that accepts **Cash** payments. Main administrative office.
+- **Notes:** Main administrative office.
 - ⚠️ **No lift — access by staircase only.** Please plan accordingly if you have mobility concerns.
 
 ---
@@ -42,8 +42,15 @@ Coursemology.sg operates four training centres in Singapore.
 
 ---
 
+## Ubi Workshop
+
+- **Address:** 01-434 Ubi Road 1, Singapore 408701
+- **WhatsApp:** 9866 0772
+
+---
+
 ## Which Courses Run Where
-Most WSQ courses (Food Safety, Cleaning, MS Office, etc.) run at Toa Payoh, Jurong East, and Tampines. Specific location availability is listed on each course page. Contact [[company/contact]] to confirm availability at a specific centre before booking.
+Most WSQ courses (Food Safety, Cleaning, MS Office, etc.) run at Toa Payoh, Jurong East, and Tampines. The Adelphi and Ubi Workshop are used for selected courses. Specific location is listed on each course page and in your booking confirmation. Contact [[company/contact]] to confirm availability at a specific venue before booking.
 
 ## Related
 - [[company/contact]] — phone numbers and email

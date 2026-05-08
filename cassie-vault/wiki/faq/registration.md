@@ -26,5 +26,11 @@ A: Yes, submit a reschedule request at least 7 days before class. Your deposit t
 **Q: I'm registering my employees. How do I do a corporate booking?**
 A: Use the "Corporate Booking" button on the course page, or contact us directly. See [[funding/corporate-funding]] for available subsidies.
 
+**Q: What information do I need to provide when registering for a WSQ course?**
+A: For WSQ/SkillsFuture-funded courses, you'll need to provide your full name (as per NRIC), NRIC/FIN/Passport number, date of birth, nationality, gender, race, address, mobile, email, job designation, monthly salary, and highest education level. This is required for the SSG grant claim. See [[concepts/wsq-registration-data]] for the full list.
+
+**Q: I'm a corporate client — how do I read my invoice?**
+A: Invoices are numbered in the format `ATT-OLA-XXXXX`, `AB-OLA-XXXXX`, or `CT-OLA-XXXXX` depending on which Coursemology provider is running the course (AesthetiCar, Associates, or Cantley). See [[funding/corporate-invoicing]] for payment methods and terms.
+
 **Q: What should I bring on the day?**
 A: Download the Singpass App beforehand if you're claiming any funding. Wear covered shoes (no open-toed shoes for Food Safety courses). Arrive on time — latecomers may not be admitted to assessments.
