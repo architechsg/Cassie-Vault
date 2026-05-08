@@ -2,6 +2,7 @@
 DB data/
 access files/
 business-logic-extracted/
+misc/
 *.accdb
 *.mdb
 

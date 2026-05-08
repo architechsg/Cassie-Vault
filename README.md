@@ -16,7 +16,6 @@ This approach was chosen after a previous Dify/RAG implementation failed due to 
 
 ```
 cassie-vault/
-├── README.md               ← this file
 ├── CLAUDE.md               ← LLM instructions: schema rules, Cassie's personality, maintenance conventions
 ├── index.md                ← master page catalog — the LLM reads this first on every query
 ├── log.md                  ← append-only change log
@@ -50,7 +49,7 @@ cassie-vault/
 ```
 User message
     ↓
-cassie_server.py  (Python — not in this repo)
+cassie_server.py  (Python — not yet built)
     ↓
 Reads CLAUDE.md + index.md + relevant wiki pages
     ↓
@@ -89,9 +88,9 @@ For schedule and booking enquiries, she directs users to WhatsApp 9866 0772 or h
 
 ## Maintaining This Vault
 
-All updates follow the conventions in `CLAUDE.md`. Key rules:
-- Every change is logged in `log.md`
-- New pages must be linked in `index.md`
+All updates follow the conventions in `cassie-vault/CLAUDE.md`. Key rules:
+- Every change is logged in `cassie-vault/log.md`
+- New pages must be linked in `cassie-vault/index.md`
 - Wikilinks use `[[folder/slug]]` format
 - All prices shown are GST-inclusive
 - Frontmatter is required on every page (`tags`, `last_updated`; course pages also need `ola_module_id`, `provider`, `course_type`)
