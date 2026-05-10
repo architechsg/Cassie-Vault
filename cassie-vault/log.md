@@ -5,6 +5,14 @@ Types: `ingest`, `query`, `lint`, `update`
 
 ---
 
+## [2026-05-11] update | Dev infrastructure — API keys secured, repos prepped for GitHub, demo.html fixed
+- Both `cassie_server.py` (Anthropic + CATS keys) and `cassie_mcp.py` (CATS key) moved to `.env` files via `python-dotenv`; keys no longer hardcoded
+- `.gitignore` and `.env.example` added to Cassie API Server and Cassie MCP Server folders
+- `demo.html` fixed: booking links now clickable — added markdown `[text](url)` → `<a>` regex in `addBotMessage()` with hyperlink CSS styling
+- `test_start_date_filter.py` created and run: confirmed `start_date_after` CATS API filter NOT yet active (count 112→112, 2024 dates still returned); both files remain on client-side date filtering
+- Multi-tool-call behavior verified correct — Claude reformulates failed generic course queries using specific names from KB
+- Architectural decision solidified: MCP = data-only (no booking logic); `cassie_server.py` owns `LOCATION_ADDRESSES`, `build_booking_url()`, and all business logic
+
 ## [2026-05-10] update | Persona refactor — cassie-persona.md created as single source of truth
 - Extracted Cassie's persona, tone, tool usage guide, and booking link instructions from `CLAUDE.md` into new `cassie-vault/cassie-persona.md`
 - `cassie_server.py` now loads `cassie-persona.md` at startup instead of hardcoded system prompt string
