@@ -1,14 +1,6 @@
 # Cassie Wiki — Schema & Maintenance Rules
 
-*This file tells you (the LLM) how to maintain this Obsidian vault and how to be Cassie.*
-
----
-
-## Who You Are
-
-You are **Cassie**, the AI assistant for **Coursemology.sg** — a Singapore WSQ/SkillsFuture training provider. You help prospective students and existing customers with questions about courses, pricing, subsidies, registration, policies, and schedules.
-
-You also maintain this wiki: when Mark feeds you new information, you update the relevant pages, keep cross-references current, and log the change.
+*This file tells you (the LLM) how to maintain this Obsidian vault.*
 
 ---
 
@@ -23,10 +15,10 @@ When Mark says things like "update the knowledge base", "add this course", "the 
 5. Append to `log.md`: `## [YYYY-MM-DD] ingest | {description}`
 
 ### ANSWER mode (triggered by Wee Kee Long or any student)
-When someone asks a question as a student or customer:
-1. Read `index.md` to find the relevant pages
+When someone asks a question as a student or customer, read `cassie-persona.md` first — that is Cassie's full persona, tone, tool usage guide, and booking link instructions. Then:
+1. Read `index.md` to find the relevant wiki pages
 2. Read those pages (follow [[wikilinks]] if you need more detail)
-3. Answer clearly and concisely — friendly, helpful, not robotic
+3. Answer following the persona defined in `cassie-persona.md`
 4. Cite the page you read if useful
 5. If the answer turns into a useful FAQ, offer to file it in `wiki/faq/`
 
@@ -37,10 +29,10 @@ When someone asks a question as a student or customer:
 ### Folder structure
 ```
 cassie-vault/
-├── CLAUDE.md           ← this file
+├── CLAUDE.md           ← this file (vault maintenance rules)
+├── cassie-persona.md   ← Cassie's system prompt (persona, tone, tool usage, booking links)
 ├── index.md            ← master page catalog (read this first on every query)
 ├── log.md              ← append-only change log
-├── raw/                ← immutable source docs (never edit)
 └── wiki/
     ├── company/        ← overview, locations, contact
     ├── courses/        ← one .md per course, organised by category subfolder
@@ -94,34 +86,9 @@ All prices shown in the KB are **GST-inclusive**. GST is 9%, calculated on the p
 
 ---
 
-## Cassie's Personality (ANSWER mode)
-
-- Warm, helpful, concise — like a knowledgeable friend at the front desk
-- Always answer the question first, then offer related info if relevant
-- You are an **information-only assistant** — you cannot check live class schedules, process bookings, or take payments
-- For schedule and availability questions, say: "For the latest class dates, please check coursemology.sg, WhatsApp us at 9866 0772, or email hello@coursemology.sg"
-- If unsure, say: "I'm not 100% sure — please contact us at hello@coursemology.sg or WhatsApp 9866 0772 to confirm"
-- Never make up prices, dates, or policies
-
-> **Planned (not yet active):**
-> - Live class schedules via OLA API: `GET https://api.ola.sg/api/public/schedule?module_id={MODULE_ID}&limits=30&max_days_to_retrieve=30` (module_id on each course page)
-> - Course booking on behalf of the user
-> These features will be enabled in a future version of Cassie once `cassie_server.py` supports tool/function calling.
-
----
-
-## Raw Sources (immutable)
-Files in `raw/` are source-of-truth documents. Read from them; never write to them.
-- `raw/cassie_knowledge_base.md` — original flat KB
-- `raw/db2_active_modules_full.json` — MySQL active modules export
-- `raw/business-logic/` — extracted Access DB business logic docs
-
----
-
 ## Lint Checks (run periodically)
 Ask the LLM to health-check the wiki by looking for:
 - Courses with `funding_expiry` dates in the past
 - Orphan pages with no inbound links
 - Missing [[wikilinks]] to related policies/funding on course pages
-- Pricing discrepancies between course pages and `raw/db2_active_modules_full.json`
 - Courses mentioned in index but file not found

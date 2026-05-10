@@ -5,6 +5,33 @@ Types: `ingest`, `query`, `lint`, `update`
 
 ---
 
+## [2026-05-10] update | Persona refactor — cassie-persona.md created as single source of truth
+- Extracted Cassie's persona, tone, tool usage guide, and booking link instructions from `CLAUDE.md` into new `cassie-vault/cassie-persona.md`
+- `cassie_server.py` now loads `cassie-persona.md` at startup instead of hardcoded system prompt string
+- `CLAUDE.md` ANSWER mode section now points to `cassie-persona.md` instead of duplicating the content
+- Single edit point for Cassie's behaviour in both Cowork dev mode and production
+
+## [2026-05-10] update | Booking link generator added — Cassie now surfaces registration links after schedule queries
+- Updated `CLAUDE.md` (vault): added "Booking Links" section instructing Cassie to share the `booking_url` from schedule results
+- Cassie now gently nudges users toward booking after showing class dates ("Ready to book? Here's your registration link…")
+- Rules added: never share booking link for a FULL class; fallback to WhatsApp if link missing
+- Corresponding code changes made outside the vault: `cassie_mcp.py` and `cassie_server.py` now include `build_booking_url()` helper and populate `booking_url` in each class run result
+
+---
+
+## [2026-05-08] update | SSG subsidy rates corrected — YanHui confirmed exact figures
+- Previous vault had approximate rates (~45%, ~65%, ~30%) — now replaced with official SSG rates
+- Self-sponsored: SC/PR/LTVP+ 21–39 = 50%; SC 40+ = 70%
+- Company-sponsored: SME = 70%; non-SME = 50%
+- LTVP+ payment note added: full fee collected upfront, grant refunded after SSG disbursement
+- Eligibility updated: PR and LTVP+ now correctly grouped with SC for subsidy tiers
+
+## [2026-05-08] update | CLAUDE.md updated — Cassie now has live schedule tool
+- Updated personality section: Cassie can now check live schedules via get_course_schedule MCP tool
+- Removed redirect-to-WhatsApp as default for schedule queries
+- Added "Live Schedule Tool" section with full instructions: when to call, how to construct query, how to handle results (found / not found / ambiguous / month not available)
+- Booking still not active — WhatsApp redirect kept for booking only
+
 ## [2026-05-08] update | YanHui confirmed: LTVP+ eligible for SSG subsidy at 75% attendance
 - UPDATED: ssg-subsidies.md — added LTVP+ row to subsidy tiers table (eligible, 75% attendance required)
 

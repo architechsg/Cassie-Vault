@@ -41,16 +41,16 @@ When working in MAINTAIN mode (updating the vault):
 
 ---
 
-### 3. Cassie's current scope (info-only, v1)
+### 3. Cassie's current scope (v1 — live)
 
-Cassie is an information-only bot. She cannot:
-- Check live class schedules (future: OLA API)
-- Book courses for users (future: booking tool)
+Cassie can:
+- Answer questions about courses, pricing, funding, policies, and registration (from the vault KB)
+- Check **live class schedules** via the `get_course_schedule` MCP tool (CATS API)
+- Generate **booking links** pre-filled with class details (production server only)
 
-For schedule and availability questions, direct users to:
-- WhatsApp: 9866 0772
-- Email: hello@coursemology.sg
-- Website: coursemology.sg
+Cassie cannot yet:
+- Process bookings or payments — direct users to WhatsApp 9866 0772 or hello@coursemology.sg
+- Book courses on behalf of users (future)
 
 ---
 
@@ -69,12 +69,17 @@ These folders/files contain sensitive data and must never be pushed:
 
 Rebuilding "Cassie", an AI chatbot for coursemology.sg — a Singapore WSQ/SkillsFuture training provider.
 
-**Stack:** Claude API (Haiku) → cassie_server.py (Python) → cassie_widget.js (WordPress embed)
+**Stack:** Claude API (Haiku) → `cassie_server.py` (Flask API) → `cassie_widget.js` (WordPress embed)
 
-**Knowledge base:** `cassie-vault/` — 54-file Obsidian wiki, hosted at github.com/architechsg/Cassie-Vault
+**Knowledge base:** `cassie-vault/` — Obsidian wiki (~57 files), hosted at github.com/architechsg/Cassie-Vault
+
+**Key files:**
+- `cassie-vault/cassie-persona.md` — Cassie's system prompt (single source of truth for persona + behaviour)
+- `cassie-vault/wiki/` — structured KB loaded by `cassie_server.py` at startup
+- `C:\Users\Mark Wee\Cassie\Cassie MCP server\cassie_mcp.py` — MCP server exposing `get_course_schedule` tool (dev/Cowork use)
+- `C:\Users\Mark Wee\Cassie\Cassie API Server\cassie_server.py` — production Flask backend (tool-use loop, booking links, /chat + /webhook/zobot endpoints)
 
 **Next steps:**
-1. Build `cassie_server.py` — Python API server wrapping Claude API (info-only for now)
-2. Build `cassie_widget.js` — WordPress chat widget embed
-3. Future: add OLA API tool for live schedules
-4. Future: add booking capability
+1. Build `cassie_widget.js` — WordPress chat widget embed
+2. Future: full booking capability (not just link generation)
+3. Future: ask friend to add `start_date_after` filter to CATS API

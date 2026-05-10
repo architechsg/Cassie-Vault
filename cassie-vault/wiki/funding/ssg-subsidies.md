@@ -5,27 +5,36 @@ last_updated: 2026-05-08
 
 # SSG Subsidies
 
-Skills & Competency (SSG) subsidies reduce the course fee for eligible Singapore Citizens and PRs.
+Skills & Competency (SSG) subsidies reduce the course fee for eligible SC, PR, and LTVP+ holders.
 
-## Subsidy Tiers
+## Self-Sponsored (Individual)
 
-| Who | Subsidy | Typical Fee Paid |
-|---|---|---|
-| Singapore Citizen aged 21–39 | ~45% off full fee | MCES price |
-| Singapore Citizen aged 40+ | ~65% off full fee | MCES price |
-| Singapore PR aged 21+ | ~30% off full fee | PR price |
-| SME-sponsored employee (any age, SC/PR) | Up to 90% (ETSS) | Varies |
-| LTVP+ holder | SSG subsidy eligible — 75% attendance required | Subsidised fee |
-| Foreigner / under 21 / ineligible SC | No subsidy | Full fee |
+| Who | Subsidy |
+|---|---|
+| SC / PR / LTVP+ aged 21–39 | **50% subsidy** |
+| SC aged 40 and above | **70% subsidy** |
+| Foreigner / under 21 / ineligible | No subsidy — full fee applies |
+
+## Company-Sponsored
+
+| Company type | Subsidy |
+|---|---|
+| SME | **70% subsidy** |
+| Non-SME | **50% subsidy** (subject to grant calculator confirmation) |
+
+Sponsoring company must contribute CPF for the trainee on the day of training.
 
 ## Eligibility Rules (all must be met)
-1. Singapore Citizen or PR
+1. SC, PR, or LTVP+ holder
 2. Aged 21 or above
 3. Attend at least **75% of training hours** — see [[policies/attendance-requirements]]
 4. Pass all assessments
 5. Use **Singpass App** for electronic attendance on class day
 6. Taking the course for the first time under its current title
-7. For employer-sponsored: company registered in Singapore; trainee on payroll and contributing CPF on the training day
+7. For company-sponsored: company registered in Singapore; trainee on payroll contributing CPF on the training day
+
+## LTVP+ Holders — Payment Note
+LTVP+ learners are eligible for SSG subsidies at the same rates as SC/PR. However, **full course fee is collected upfront**. The grant amount is refunded to the learner once SSG disburses the funds.
 
 ## How GST Works With Subsidies
 GST (9%) is calculated on the **full pre-subsidy fee**, not the subsidised fee. So:
