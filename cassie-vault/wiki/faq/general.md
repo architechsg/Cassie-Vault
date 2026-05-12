@@ -1,6 +1,6 @@
 ---
 tags: [faq, general]
-last_updated: 2026-05-08
+last_updated: 2026-05-12
 ---
 
 # FAQ — General
@@ -42,4 +42,9 @@ A: Yes. Work Permit (WP) holders are welcome to attend our courses. SSG subsidie
 A: Not all courses qualify for the Mid-Career Enhanced SFC credit. Regular SkillsFuture Credit can be used for any WSQ course with a TGS code, but the Mid-Career top-up credit has a separate approved course list. Check your SFC balance breakdown at myskillsfuture.gov.sg to see which credit type you have. If in doubt, contact us at hello@coursemology.sg before registering.
 
 **Q: My food safety certificate is expiring soon. Do I need to redo the full course?**
-A: No. If your Food Safety Level 1 SOA has expired (or is about to expire at the 5-year mark), you only need to take the shorter Refresher course — not the full Level 1 again. The Refresher is 4.5 hours and costs less. See [[courses/food-safety/food-safety-level-1-refresher-english]]. After the first renewal (at 5 years), subsequent renewals are every 10 years.
+A: It depends on how old your certificate is:
+
+- **Certificate is ~5 years old (first expiry):** Take the shorter **Refresher course** — not the full Level 1. The Refresher is 4.5 hours and costs less. See [[courses/food-safety/food-safety-level-1-refresher-english]].
+- **Certificate is ~10 years old (second expiry / had a refresher before):** You must retake the **full Level 1 course** — the Refresher is no longer eligible at the 10-year mark. You cannot use the Refresher if you have already renewed once.
+
+> ⚠️ **10-year rule:** If someone already did a Refresher course to renew their cert, their next renewal requires the full Level 1, not another Refresher. Always check which renewal cycle the student is on.

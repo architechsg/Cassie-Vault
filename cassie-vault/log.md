@@ -5,6 +5,54 @@ Types: `ingest`, `query`, `lint`, `update`
 
 ---
 
+## [2026-05-12] update | Sanity check — persona/server retry alignment fix
+- cassie-persona.md Rule 3: removed "retry with num_results=15" instruction — server now handles retry internally; redundant Cassie-level retry removed
+- cassie-persona.md, ssg-subsidies.md, faq/general.md: last_updated bumped to 2026-05-12
+
+## [2026-05-12] update | 10-fix patch applied — vault, persona, and tool-fix
+
+**Vault fixes:**
+- `wiki/funding/ssg-subsidies.md` — restructured Self-Sponsored table into 4 separate rows (SC 21–39, SC 40+, PR, LTVP+); added PR/SPR callout box explicitly stating PR = 50% always, never 70%
+- `wiki/faq/general.md` — rewrote food safety cert renewal Q&A: 5-year mark = Refresher, 10-year mark = Full Course required (not Refresher); added ⚠️ callout for 10-year rule
+- `wiki/funding/mid-career-sfc.md` — NEW PAGE: covers Mid-Career Enhanced SFC top-up ($4,000), MCES subsidy, how to check balance breakdown, confirmed course list caveat, and explicit instruction to email/WhatsApp before registering when using Mid-Career credit
+- `index.md` — added mid-career-sfc entry to Funding table
+
+**Persona fixes (cassie-persona.md):**
+- Live Schedule Tool section rewritten as 5 numbered rules:
+  - Rule 1: Call tool first, clarify after (fixes over-clarification before tool call)
+  - Rule 2: How to call (clarified)
+  - Rule 3: Handling results — empty result retry (num_results=15, then soft fallback); month-mismatch flagging
+  - Rule 4: Timing questions — give 9am–6pm upfront, don't ask for clarification
+  - Rule 5: Pricing — never cite deal_value; always use vault pricing tiers
+
+**Pending (bash unavailable):**
+- `cassie_server.py` retry logic: retry with num_results=15 on empty result, then return soft fallback message
+
+## [2026-05-12] query | Cassie graded against 130 real visitor questions — gap analysis complete
+- Graded all 130 test responses from `cassie_test_results_20260512_161458.csv`
+- 88 Type A (gradeable), 35 Type C (clarification), 7 OOS/trivial
+- Pass rate (Type A): 62.5% | Partial: 25% | Fail: 12.5% | Mean score: 1.63/2.0
+- 12 vault gaps, 19 prompt gaps, 9 CATS tool gaps identified
+- Top failures: tool loop error (row 4), empty schedule for Food Safety L1 English (row 112), PR subsidy rate hallucination (30% stated, should be 50%) (row 102), Mid-Career SFC hallucination (row 70), 10yr cert logic error (row 93)
+- Output files: `cassie_test_results_graded.csv` + `cassie_gap_analysis.html`
+- Priority fixes: Mid-Career SFC vault page needed; tool retry logic for empty results; PR subsidy rate correction in persona; refresher pricing to use vault tiers not deal_value
+
+## [2026-05-12] query | SalesIQ scrape complete — 100 additional real visitor questions extracted (ids 31–130)
+- Continued browsing SalesIQ closed chats from #18683 down to #18642
+- Collected 100 new questions (ids 31–130) appended to cassie_test_questions.csv (now 130 total)
+- New topics covered: course_timing, course_availability, pricing_registration, schedule_location, language_option, course_requirements, certificate_retrieval, registration, funding_skillsfuture, accreditation, course_inquiry, eligibility_foreign
+- Notable patterns: many chats missed or idle timeout; agents often only said "hi" then redirected to WhatsApp; Cassie should do far better on straightforward factual questions
+- Skipped non-Singapore visitors (Pakistan, India) and job-seekers (telemarketer vacancy, safety job inquiries)
+
+## [2026-05-12] query | Cassie evaluation setup — 30 real questions extracted from SalesIQ, test harness built
+- Browsed 30+ real visitor chats from SalesIQ (salesiq.zoho.com/coursemology/allchats)
+- Extracted 30 real questions covering: funding/SkillsFuture, eligibility, prerequisites, schedule/location, registration, certification, halal, corporate enrollment, course discovery, Chinese-language, accreditation
+- Created `cassie_test_questions.csv` — 30 questions with topic tags and human agent answers
+- Created `cassie_tester.py` — test harness that sends each question to `/chat` endpoint and saves responses with scoring columns to CSV
+- Key patterns observed: many chats were missed or deflected to WhatsApp by agents without answering — Cassie needs to do better on these
+
+---
+
 ## [2026-05-11] update | Dev infrastructure — API keys secured, repos prepped for GitHub, demo.html fixed
 - Both `cassie_server.py` (Anthropic + CATS keys) and `cassie_mcp.py` (CATS key) moved to `.env` files via `python-dotenv`; keys no longer hardcoded
 - `.gitignore` and `.env.example` added to Cassie API Server and Cassie MCP Server folders

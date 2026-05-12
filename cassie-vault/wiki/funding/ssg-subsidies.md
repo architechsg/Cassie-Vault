@@ -1,6 +1,6 @@
 ---
 tags: [funding, ssg, subsidy, eligibility]
-last_updated: 2026-05-08
+last_updated: 2026-05-12
 ---
 
 # SSG Subsidies
@@ -11,9 +11,13 @@ Skills & Competency (SSG) subsidies reduce the course fee for eligible SC, PR, a
 
 | Who | Subsidy |
 |---|---|
-| SC / PR / LTVP+ aged 21–39 | **50% subsidy** |
-| SC aged 40 and above | **70% subsidy** |
-| Foreigner / under 21 / ineligible | No subsidy — full fee applies |
+| Singapore Citizen (SC) aged 21–39 | **50% subsidy** |
+| Singapore Citizen (SC) aged 40 and above | **70% subsidy** |
+| Singapore PR (SPR) aged 21 and above | **50% subsidy** |
+| LTVP+ holder aged 21 and above | **50% subsidy** |
+| Foreigner / Work Permit / under 21 / ineligible | No subsidy — full fee applies |
+
+> ⚠️ **PR/SPR note:** PRs always qualify at **50%**, regardless of age. The 70% rate is for Singapore Citizens aged 40+ only. PRs do **not** get 70% even if they are 40 or above.
 
 ## Company-Sponsored
 
