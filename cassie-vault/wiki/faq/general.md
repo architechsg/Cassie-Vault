@@ -41,6 +41,9 @@ A: Yes. Work Permit (WP) holders are welcome to attend our courses. SSG subsidie
 **Q: Can I use my Mid-Career SkillsFuture Credit (the extra $4,000 top-up) for these courses?**
 A: Not all courses qualify for the Mid-Career Enhanced SFC credit. Regular SkillsFuture Credit can be used for any WSQ course with a TGS code, but the Mid-Career top-up credit has a separate approved course list. Check your SFC balance breakdown at myskillsfuture.gov.sg to see which credit type you have. If in doubt, contact us at hello@coursemology.sg before registering.
 
+**Q: What levels does the Food Safety course come in?**
+A: Coursemology offers **Food Safety Level 1** (for food handlers) and **Food Safety Level 3** (for supervisors/managers/Food Hygiene Officers). There is no Level 2 or Level 4. If a visitor asks about "Level 4" or any other level, it does not exist — clarify and ask whether they mean Level 1 or Level 3.
+
 **Q: My food safety certificate is expiring soon. Do I need to redo the full course?**
 A: It depends on how old your certificate is:
 

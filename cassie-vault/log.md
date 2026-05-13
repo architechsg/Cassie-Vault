@@ -5,6 +5,49 @@ Types: `ingest`, `query`, `lint`, `update`
 
 ---
 
+## [2026-05-13] update | Architecture — pricing moved from vault to live CATS API
+
+**cassie_mcp.py (Cassie MCP Server):**
+- Added `GST_RATE`, `SUBSIDY_SC_PR`, `SUBSIDY_MCES` constants (9%, 50%, 70%)
+- Added `calculate_pricing_tiers()` function computing full/sc_pr/mces fees from raw `full_fee` in CATS API response
+- `get_course_schedule` now returns `pricing` object with: `full`, `sc_pr`, `mces`, `utap_eligible`, `psea_eligible`, `mces_top_up` — all GST-inclusive
+- Tool description updated to note pricing is the only source of truth for fees
+- `tgs_code` now included in all tool responses (from `course_ref_no`)
+- Empty-result path also returns pricing + tgs_code for the matched course
+
+**cassie-persona.md:**
+- Section renamed to "Live Schedule & Pricing Tool"
+- Added: all pricing (full, sc_pr, mces, psea, utap, mces_top_up) comes live from tool — vault intentionally has no prices
+- Rule 1 trigger list expanded to include pricing/fee questions as immediate call triggers
+- Rule 5 (Pricing) rewritten: defines each pricing field, specifies "all GST-inclusive", SC two-tier distinction (21-39 = sc_pr rate, 40+ = mces rate), forbids quoting `deal_value`
+
+**Vault — 28 WSQ course files (pricing sections removed):**
+- Removed `## Pricing` table + `## Subsidies & Funding` sections from all standard-format WSQ pages (food-safety x9, maintenance x5, baking x3, ai-tech x5)
+- Removed `**Pricing:** Full $X / PR $Y / MCES $Z` inline lines from multi-course pages (cleaning x7, ms-office x4, drone-media x5, ecommerce x2, beauty x2, admin-hr x2)
+- Kept: private/non-WSQ course prices (private-workshops.md, first-aid-courses.md, other-courses.md, Copilot Training Workshop private entry, beauty private courses)
+- Kept: qualitative funding notes (`**Funding:** SFC eligible, UTAP eligible...`), "No UTAP, no PSEA" caveats, funding expiry warnings
+- Kept: special notes like drone CT11 "Funding period ended Jul 2025 — confirm with staff"
+
+**Vault — funding pages:**
+- `funding/pricing-tiers.md`: added Cassie note — actual fees from `get_course_schedule` tool, not the vault
+- `funding/ssg-subsidies.md`: added Cassie note — actual subsidised fees from tool, all prices GST-inclusive
+
+**cassie_server.py (production Flask API) — pricing sync:**
+- Added `GST_RATE`, `SUBSIDY_SC_PR`, `SUBSIDY_MCES` constants
+- Added `calculate_pricing_tiers()` — same logic as cassie_mcp.py
+- `execute_get_course_schedule()` now returns full `pricing` object + `tgs_code` (matching cassie_mcp.py output)
+- Booking URL `course_fee` param now uses `pricing["full"]` (GST-inclusive) instead of raw pre-GST `full_fee`
+- Tool description updated to mention live pricing + eligibility fields
+- Empty-result path also returns `pricing` and `tgs_code`
+
+**API key fix (separate session):**
+- `cassie_server_dev.py` + `grade_and_report.py`: added `clean_env` to strip `ANTHROPIC_API_KEY` from subprocess env, preventing paid API credits from being consumed when using OAuth Claude CLI
+
+## [2026-05-13] update | Persona fixes from 130-question eval grading
+- cassie-persona.md Rule 1: strengthened with explicit list of what counts as "enough to call" the schedule tool; removed ambiguity that caused Cassie to ask before calling
+- cassie-persona.md Rule 5: added GST-inclusive clarification ("never add GST on top of a KB price") and explicit SC pricing tier explanation (SC 21–39 = PR rate, SC 40+/MCES = lower rate)
+- faq/general.md: added Q&A clarifying Food Safety only has Level 1 and Level 3 — no Level 2 or Level 4 — to prevent recurring Level 4 hallucination
+
 ## [2026-05-12] update | Sanity check — persona/server retry alignment fix
 - cassie-persona.md Rule 3: removed "retry with num_results=15" instruction — server now handles retry internally; redundant Cassie-level retry removed
 - cassie-persona.md, ssg-subsidies.md, faq/general.md: last_updated bumped to 2026-05-12

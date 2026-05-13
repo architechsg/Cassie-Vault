@@ -5,7 +5,7 @@ tgs_code: TGS-2025054876
 provider: AesthetiCar Pte Ltd
 course_type: WSQ
 funding_expiry: 2027-05-01
-last_updated: 2026-05-08
+last_updated: 2026-05-13
 ---
 
 # Business Visual Content Creation with Generative AI Tools (#AT53)
@@ -14,16 +14,6 @@ WSQ course on using AI tools to create visual content for business purposes.
 
 ## Key Details
 - **Duration:** 2 days (16 hours)
-
-## Pricing
-| Who | Fee (incl. GST) |
-|---|---|
-| Foreigner / under 21 / non-eligible | **$872.00** |
-| Singapore PR (21+) | **$472.00** |
-| Singapore Citizen 21+ (MCES) | **$312.00** |
-
-## Subsidies & Funding
-- [[funding/skillsfuture-credit|SkillsFuture Credit]] — eligible (TGS-2025054876)
 
 ## Related Courses
 - [[courses/ai-tech/effective-business-writing-ai]]

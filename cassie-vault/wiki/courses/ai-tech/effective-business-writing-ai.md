@@ -5,7 +5,7 @@ tgs_code: TGS-2025054745
 provider: AesthetiCar Pte Ltd
 course_type: WSQ
 funding_expiry: 2027-04-23
-last_updated: 2026-05-08
+last_updated: 2026-05-13
 ---
 
 # Effective Business Writing with Generative AI Tools (#AT51)
@@ -14,16 +14,6 @@ WSQ course teaching professionals how to use generative AI tools to enhance busi
 
 ## Key Details
 - **Duration:** 2 days (16 hours)
-
-## Pricing
-| Who | Fee (incl. GST) |
-|---|---|
-| Foreigner / under 21 / non-eligible | **$872.00** |
-| Singapore PR (21+) | **$472.00** |
-| Singapore Citizen 21+ (MCES) | **$312.00** |
-
-## Subsidies & Funding
-- [[funding/skillsfuture-credit|SkillsFuture Credit]] — eligible (TGS-2025054745)
 
 ## Related Courses
 - [[courses/ai-tech/automation-management-ai-chatbots]]

@@ -1,9 +1,11 @@
 ---
 tags: [funding, pricing, gst, subsidy-tiers]
-last_updated: 2026-05-08
+last_updated: 2026-05-13
 ---
 
 # Pricing Tiers Explained
+
+> **Note for Cassie:** Actual per-course fees are **not stored in this vault**. They are returned live from the `get_course_schedule` tool (`pricing.full`, `pricing.sc_pr`, `pricing.mces`). Use this page only to explain the pricing structure to visitors — never quote prices from this page directly.
 
 ## The Three Price Points
 Every WSQ course has three published prices (all GST-inclusive):

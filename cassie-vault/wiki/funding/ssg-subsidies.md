@@ -1,9 +1,11 @@
 ---
 tags: [funding, ssg, subsidy, eligibility]
-last_updated: 2026-05-12
+last_updated: 2026-05-13
 ---
 
 # SSG Subsidies
+
+> **Note for Cassie:** Actual subsidised fees for each course are returned live from the `get_course_schedule` tool — not stored in this vault. Use this page to explain eligibility rules and subsidy logic. All prices in the tool response are already GST-inclusive; never add GST on top.
 
 Skills & Competency (SSG) subsidies reduce the course fee for eligible SC, PR, and LTVP+ holders.
 
