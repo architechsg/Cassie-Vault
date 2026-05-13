@@ -43,6 +43,12 @@ Types: `ingest`, `query`, `lint`, `update`
 **API key fix (separate session):**
 - `cassie_server_dev.py` + `grade_and_report.py`: added `clean_env` to strip `ANTHROPIC_API_KEY` from subprocess env, preventing paid API credits from being consumed when using OAuth Claude CLI
 
+## [2026-05-14] update | Persona — natural speech rule added
+
+- cassie-persona.md Response Style: added rule forbidding meta-references ("knowledge base", "my records", "according to my data", etc.)
+- Cassie now speaks as a knowledgeable person — states facts directly, uses "I'm not sure" instead of "that's not in my knowledge base"
+- Also tweaked adjacent line to remove the word "knowledge base" from the persona's own wording ("not covered by your training or tool results")
+
 ## [2026-05-13] update | Persona fixes from 130-question eval grading
 - cassie-persona.md Rule 1: strengthened with explicit list of what counts as "enough to call" the schedule tool; removed ambiguity that caused Cassie to ask before calling
 - cassie-persona.md Rule 5: added GST-inclusive clarification ("never add GST on top of a KB price") and explicit SC pricing tier explanation (SC 21–39 = PR rate, SC 40+/MCES = lower rate)
