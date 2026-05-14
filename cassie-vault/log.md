@@ -5,6 +5,21 @@ Types: `ingest`, `query`, `lint`, `update`
 
 ---
 
+## [2026-05-15] update | Persona Rule 1 rebalanced — "one question max, then call"
+
+- Reverted overly aggressive "CALL IMMEDIATELY, NEVER clarify" framing after user review
+- New rule: one focused clarifying question is natural and acceptable; a chain of questions is not
+- Hard constraint: after any one clarifying answer, call the tool immediately — no follow-up questions
+- Specific enough queries (named course + level, pricing questions, location + topic) still trigger immediate call
+- Rationale: single clarification feels like a real front-desk person; the original problem was chains of 2–3 clarifications before ever calling
+
+## [2026-05-15] update | Persona Rule 1 rewrite — stronger "call first, clarify after" enforcement
+
+- Rewrote Rule 1 in cassie-persona.md to be significantly more forceful
+- Added explicit NEVER list: never ask "which level?", "which language?", "which location?", "which month?" before calling the tool
+- Expanded "enough to call" examples to cover language-without-level and level-without-language cases
+- Rationale: eval analysis (N=116) showed ~30 Rule 1 violations in new run — prompt_gap Y count rose 35→65, actionable C count rose 13→34
+
 ## [2026-05-13] update | Architecture — pricing moved from vault to live CATS API
 
 **cassie_mcp.py (Cassie MCP Server):**
