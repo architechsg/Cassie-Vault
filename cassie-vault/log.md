@@ -5,6 +5,24 @@ Types: `ingest`, `query`, `lint`, `update`
 
 ---
 
+## [2026-05-15] build | Human feedback Excel (130 questions) prepared for agent review
+
+- Script: `Cassie API Server/build_feedback_excel.py`
+- Runner batch: `Cassie API Server/run_build_feedback_excel.bat`
+- Output (when run): `Cassie Chatbot/cassie_human_feedback.xlsx`
+- 3 sheets: Instructions, Feedback (130 rows, yellow input cols), Summary (auto-calc)
+- Data source: cassie_test_results_graded.csv + cassie_dev_grades_new.json
+- Purpose: dad's live agents rate each Cassie reply (1–5, Yes/No, comments)
+
+## [2026-05-15] update | Persona response style tightened for conversational brevity
+
+- Response style: changed from "2–4 short paragraphs" to "1–2 sentences for simple answers, 2–3 dates for schedules"
+- Added explicit guidance: answer the immediate question, let follow-ups draw out more detail
+- Added note that accuracy is unaffected — full tool result stays in context for follow-ups
+- num_results default reduced from 5 to 3
+- Booking link: removed verbose "Ready to book?" preamble — link now woven inline naturally
+- Rule 3: "classes found" guidance updated to match briefer style
+
 ## [2026-05-15] update | Persona Rule 1 rebalanced — "one question max, then call"
 
 - Reverted overly aggressive "CALL IMMEDIATELY, NEVER clarify" framing after user review
