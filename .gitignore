@@ -17,3 +17,6 @@ desktop.ini
 # Editor / tool artifacts
 .obsidian/
 *.tmp
+
+# Sibling repo — managed separately at github.com/architechsg/Cassie-Deploy
+cassie-deploy/

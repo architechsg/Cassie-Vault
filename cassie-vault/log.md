@@ -5,6 +5,26 @@ Types: `ingest`, `query`, `lint`, `update`
 
 ---
 
+## [2026-05-17] build | cassie-deploy repo created — Docker deployment package for friend's server
+
+- Created `cassie-deploy/` folder inside Cassie Chatbot workspace
+- `cassie_server.py` — deploy copy with relative vault paths + PORT from env + debug=False
+- `requirements.txt` — anthropic, flask, flask-cors, python-dotenv
+- `Dockerfile` — python:3.11-slim, copies cassie-vault into image
+- `docker-compose.yml` — single service, env_file .env, healthcheck on /health
+- `.env.example` — template with ANTHROPIC_API_KEY, ZOBOT_SECRET, optional PORT/paths
+- `.gitignore` — excludes .env, __pycache__, venv, logs
+- `copy-vault.bat` — Windows batch script to xcopy cassie-vault into deploy folder before building
+- Vault files must be copied with copy-vault.bat before `docker compose up --build`
+
+## [2026-05-17] update | Input guardrails added to cassie_server.py
+
+- Added `flask-limiter` (requirements.txt): 20 msg/hour + 150 msg/day per IP on both /chat and /webhook/zobot
+- Added `check_input_length()`: rejects messages over 500 chars before any API call
+- Added `classify_message()`: Claude Haiku classifier blocks off-topic, prompt injection, and spam; fails open on error
+- Added `@app.errorhandler(429)` for friendly rate-limit message in correct format for each endpoint
+- No changes to vault KB or persona; server-only update
+
 ## [2026-05-15] build | Human feedback Excel (130 questions) prepared for agent review
 
 - Script: `Cassie API Server/build_feedback_excel.py`
