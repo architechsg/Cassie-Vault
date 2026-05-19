@@ -5,6 +5,25 @@ Types: `ingest`, `query`, `lint`, `update`
 
 ---
 
+## [2026-05-19] update | Bug fixes: booking URL # fragment, wikilink stripping, classifier context, persona brevity
+
+- **Fix — Booking URL `#` fragment bug**: `build_booking_url()` was encoding `#AB51` → `%23AB51`; Claude Haiku decoded `%23` back to `#` when writing the URL; browser treated `#` as fragment separator, stripping all query params after it. Fix: `clean_tag = (tag or "").lstrip("#")` — strips leading `#` before encoding so `%23` never appears. Applied to `cassie-deploy/cassie_server.py` and `Cassie API Server/cassie_server.py`.
+- **Fix — Adelphi address**: `#04-35` → `No.04-35` in `LOCATION_ADDRESSES` to prevent the same `#` fragment bug in booking links.
+- **Fix — Wikilink stripping**: `load_vault()` now strips Obsidian `[[Page|alias]]` → alias and `[[Page]]` → page name at load time. Prevents bracket syntax leaking into Cassie's replies. Applied to all 3 server files.
+- **Fix — Context-aware classifier**: `classify_message()` now receives `last_cassie_reply` (up to 300 chars); prevents false positives on short follow-ups like "dim sum please" after a baking course reply. Applied to all 3 server files.
+- **Fix — Booking URL null end_date**: `run.get("end_date") or "TBC"` handles null from CATS API; booking URL only generated when end date is a real value. Applied to all 3 server files.
+- **Fix — CLASSIFIER_SYSTEM missing `"""`**: `Cassie API Server/cassie_server.py` had unclosed triple-quote on CLASSIFIER_SYSTEM constant, making the file completely unparseable (Python swallowed ~800 lines as string). Closing `"""` inserted; truncated `health()` route and file tail restored.
+- **Fix — Corrupted `load_vault()`**: `cassie-deploy/cassie_server.py` had entry point code injected into function body from prior Edit tool truncation. Cleaned up.
+- **Persona — PSEA/UTAP tool trigger**: `cassie-persona.md` Rule 1 + Rule 5 updated: PSEA/UTAP live only in tool (never KB); pricing/funding queries for named courses trigger immediate tool call; broad eligibility queries handled gracefully.
+- **Persona — brevity rewrite**: `cassie-persona.md` Response Style strengthened: 1–2 sentences for simple questions, explicit ban on trailing offers, no dumping all schedule/pricing at once.
+- All 6 issues confirmed PASS via live local testing (cassie-deploy server).
+
+## [2026-05-18] update | Bug fixes: classifier markdown stripping + history trim safety
+
+- **Fix 1 — Classifier JSON parse failure**: Haiku wraps JSON in ` ```json ``` ` fences despite instructions; `json.loads` failed at char 0 on every message. Added markdown-fence stripping (`re.sub`) before `json.loads` in `classify_message()`. Applied to `cassie-deploy/cassie_server.py` (prod server already had partial fix from Claude Code, completed with closing-fence strip).
+- **Fix 2 — History trim 400 errors**: `history[-20:]` could start on a `tool_result` user message (orphaned from its `tool_use` block), causing Anthropic 400 "unexpected tool_use_id" errors on the next request. Fixed by advancing the trim window to the first clean user text message. Applied to both `Cassie API Server/cassie_server.py` and `cassie-deploy/cassie_server.py`.
+- No vault KB changes; server-only bug fixes.
+
 ## [2026-05-17] build | cassie-deploy repo created — Docker deployment package for friend's server
 
 - Created `cassie-deploy/` folder inside Cassie Chatbot workspace
@@ -240,3 +259,13 @@ Types: `ingest`, `query`, `lint`, `update`
 - Added #AB51A Copilot Training Workshop (from JSON, missing from original KB)
 - Added PSEA eligibility flags to relevant courses
 - Deposit policy updated to reflect actual range ($20–$100+ depending on course)
+
+## [2026-05-19] update | Post-live-test bug fixes — server + persona
+- `cassie-deploy/cassie_server.py` — fixed corrupted `load_vault()` (entry point code had been injected into function body from prior edit tool truncation bug)
+- `Cassie API Server/cassie_server.py` — fixed missing closing `"""` on `CLASSIFIER_SYSTEM` constant (caused Python to swallow ~800 lines as string content, making file completely unparseable; root cause of all past syntax errors in this file)
+- All 3 server files — added Obsidian wikilink stripping at vault load time (`[[Page|alias]]` → alias, `[[Page]]` → Page name); prevents raw bracket syntax from leaking into Cassie's responses
+- All 3 server files — context-aware classifier: `classify_message()` now receives `last_cassie_reply` for context, replacing the fragile 5-word rule; prevents false positives on short follow-up messages
+- All 3 server files — booking URL fix: `run.get("end_date") or "TBC"` (handles null from CATS API); booking URL only generated when end date is a real value
+- `cassie-vault/cassie-persona.md` — Rule 1 updated: added explicit "do not consult knowledge base first" for pricing/funding queries; Rule 5 updated: PSEA/UTAP live ONLY in tool (never KB); guidance added for broad "which courses have PSEA?" queries
+- `cassie-vault/cassie-persona.md` — Response Style section rewritten: stronger brevity rules, explicit ban on trailing "Is there anything else?" offers, guidance on not dumping all schedule/pricing info at once
+- **Status:** All fixes local only. Mark to test locally tomorrow, then push cassie-deploy → friend rebuilds Docker.
