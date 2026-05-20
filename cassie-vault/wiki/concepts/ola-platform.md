@@ -11,7 +11,7 @@ OLA (ola.sg) is the course management and scheduling platform used by Coursemolo
 ## For Students
 - Class schedules are managed on OLA
 - When you register on coursemology.sg, your booking is processed through OLA
-- You receive SMS and email confirmation from OLA after payment
+- You receive WhatsApp and email confirmation from OLA after payment
 
 ## For Cassie (Live Schedule Lookup)
 To retrieve live class schedules, call the OLA public API:

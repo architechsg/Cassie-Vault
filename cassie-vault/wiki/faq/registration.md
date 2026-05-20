@@ -12,7 +12,7 @@ A: Go to coursemology.sg, find your course, click "Book Class" (individual) or "
 A: No. Each person must register with their own unique email address.
 
 **Q: What happens after I pay?**
-A: You'll receive an SMS and email confirmation. Your spot is confirmed once payment is received.
+A: You'll receive a WhatsApp and email confirmation. Your spot is confirmed once payment is received.
 
 **Q: How much is the deposit?**
 A: A refundable admin deposit (typically $20–$100, varies by course) is collected at enrolment. It is returned after you complete the course. See [[policies/deposit-policy]].

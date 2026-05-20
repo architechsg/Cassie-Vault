@@ -5,6 +5,84 @@ Types: `ingest`, `query`, `lint`, `update`
 
 ---
 
+## [2026-05-21] update | Alt-venue runs get booking_tokens too — fixes empty-map issue when venue fallback fires
+
+- **Bug**: User asked "moon cakes class in tampines" → no Tampines runs → fallback returned 3 Adelphi alt-venue runs WITHOUT booking_tokens (because format_run was called with course_fee omitted in the alt-venue path). conv_tokens map stayed empty. Cassie reasonably wanted to give booking links, invented 3 `[[BOOK_*]]` placeholders. Server stripped them silently, so user saw classes with no links at all. Follow-up turns (which referenced prior tokens) hit the same empty-map problem.
+- **Root cause**: the "alt-venue runs intentionally have no booking_url" rule was a workaround for the OLD single-URL auto-append design — where one auto-grabbed link could mislead the user before they'd picked a venue. **Under the token architecture this constraint is obsolete**: Cassie chooses where each token goes, so there's no auto-grab.
+- **Fix — `cassie-deploy/cassie_server.py`**: `execute_get_course_schedule` alt-venue path now passes `course_fee = pricing.get("full")` to `format_run` so alt-venue runs get full `booking_url` + `booking_token` like any other run. Comment block above updated to explain.
+- **Persona — `cassie-persona.md` Booking Links**: "Alternative-venue runs intentionally have no booking_token" rule REVERSED — they DO have tokens, treat them same as `upcoming_classes`. Visitor can book any alt-venue class directly.
+- **Net effect** for the three failing test cases: (1) "moon cakes at tampines" now populates conv_tokens with 3 Adelphi tokens → Cassie's tokens resolve → 3 clickable links; (2) "provide me booking link for all" can resolve from prior-turn map; (3) "i want 31 july" can resolve the specific class.
+
+## [2026-05-21] update | Token mechanism hardened — invalid tokens stripped silently + persona token discipline
+
+- **Bug** (during live testing of token rollout): Cassie wrote `[[BOOK_NA]]` for a mooncake class that had no `booking_token` in the tool result (likely the class had end_date null, so format_run skipped the token). The original strict regex `\[\[BOOK_\d+\]\]` didn't match `BOOK_NA`, so the literal `[[BOOK_NA]]` was left visible in the chat — looked broken to the user.
+- **Fix — `cassie-deploy/cassie_server.py`**:
+  - Loosened `BOOKING_TOKEN_RE` from `\[\[BOOK_\d+\]\]` to `\[\[BOOK_[^\]]+\]\]` — catches any `[[BOOK_*]]` shape Cassie might invent.
+  - `_substitute_booking_tokens()` now returns a 3-tuple `(text, valid_count, invalid_stripped_count)`. Invalid tokens (not in the conv_tokens map) are stripped silently with `""` instead of being left literal. Whitespace tidy-up after stripping (trailing space before punctuation, empty parens, double spaces).
+  - Call site at end of `get_cassie_reply()` logs `[Tokens] substituted N` and `[Tokens] stripped N invalid` as a WARNING — flags persona drift without exposing the artefact to visitors.
+- **Persona — `cassie-persona.md` Booking Links rewritten** with new "Token discipline" section:
+  - Use the token EXACTLY as it appears in the tool result. Don't retype or paraphrase.
+  - NEVER invent a token. No `[[BOOK_NA]]`, `[[BOOK_TBA]]`, `[[BOOK_TBC]]`, etc.
+  - If a class has no `booking_token`, omit the token entirely — the visitor WhatsApps to book that one.
+- **Verified**: unit test reproducing the exact mooncake-workshop bug pattern — 1 invalid stripped, 2 valid substituted, 24 June line ends cleanly with no trailing artefacts.
+
+## [2026-05-21] update | Booking-link architecture — token placeholders replace single-URL auto-append
+
+- **Why**: previous architecture only attached one `<a href>` per Cassie reply (the first booking_url it saw in a tool result). When the user asked for all 3 dates they got 1 clickable + 10 dead "Book now" labels (scrubber stripped the markdown URLs Cassie wrote for the others). Follow-up turns ("Tampines please, give me the link") got nothing because no new tool call fired, so the server had no booking_url to capture.
+- **New flow** — `cassie-deploy/cassie_server.py`:
+  - `format_run()` now emits both `booking_url` and `booking_token` (format: `[[BOOK_<run_id>]]`) for runs that qualify for booking.
+  - Module-level `booking_links: dict[str, dict[str, str]]` — per-conversation token→URL map. Persists across turns so Cassie can reference tokens from earlier tool calls in follow-up replies.
+  - Tool loop populates `conv_tokens` from each tool result's `upcoming_classes` (and `upcoming_classes_other_venues`, though those don't currently carry tokens). Strips `booking_url` from `result_clean` — Cassie sees only `booking_token`.
+  - `BOOKING_TOKEN_RE = re.compile(r'\[\[BOOK_\d+\]\]')` and `_substitute_booking_tokens(text, conv_tokens)` — single regex pass at end of `get_cassie_reply()` replaces each token with `<a href="{url}" target="_blank">Book this class</a>`.
+  - REMOVED: the old `booking_url_for_html` capture-and-append-at-end logic. Tokens handle all link placement.
+  - `_scrub_urls()` retained as defence-in-depth; logs a warning when it fires (signals persona drift).
+  - History save: still `reply_raw` (the post-scrub, pre-substitution text) — preserves tokens so Cassie can reference them on follow-up turns; no URLs in history to imitate.
+- **Persona — `cassie-persona.md` "Booking Links" section rewritten**: tells Cassie to use `booking_token` inline next to each class; explains follow-up turn behaviour (repeat the token from a prior reply); skips token for FULL classes; alt-venue runs have no token by design.
+- **Verified**: 6 isolated unit tests of `_substitute_booking_tokens` all pass — multi-link (3 tokens in one reply), follow-up turn (token from prior turn map), invalid-token (left literal so it shows in logs), plain reply, empty map, token-with-punctuation. End-to-end testing requires Mark to restart the local server.
+- **File state**: bash mount in test env stuck on stale 1044-line copy; actual Windows file is 1152 lines with all edits — Read tool confirms. Recurring sync issue; Mark's local Python will read the live file directly.
+- **Net code change**: roughly the same size as the strip+capture+append block it replaced. Number of "places link logic lives" went from 3 (strip in tool loop, capture in tool loop, append at end) to 2 (strip+populate-map in tool loop, substitute at end). Smaller surface, cleaner contract.
+
+## [2026-05-21] update | Location-fallback in `get_course_schedule` — offer other venues when the requested venue has none
+
+- **Bug**: User picked "Jurong East" for the Drone course; Cassie said "I don't see any upcoming dates in the system right now" and offered the WhatsApp fallback. But 4 future runs at Toa Payoh existed in CATS — the user just couldn't see them. When the user narrowed to "Aerial Photography & Videography with Drones", Cassie carried the Jurong East filter forward and got the same empty result again, never trying without the filter.
+- **Root cause**: `execute_get_course_schedule` had a single empty-result branch with one message ("WhatsApp us — schedules update regularly"). That message conflated *"no runs at the requested venue"* with *"no runs anywhere"*. The existing limit-15 retry kept the same location filter, so it never widened the search.
+- **Fix — `cassie-deploy/cassie_server.py`**:
+  - After both initial fetch and limit=15 retry come up empty, **if a `location_ids` was specified**, do a second fetch with `location_ids=None` and return a new bucket `upcoming_classes_other_venues` alongside the empty `upcoming_classes`.
+  - Tool-result `message` field now explicitly tells Cassie: "no upcoming dates at \<venue\>, BUT classes are scheduled at other venues — offer them, ask if any other location works."
+  - Alternative-venue runs are intentionally returned WITHOUT `booking_url` — the server's auto-append fires off the first `booking_url` it finds, and we don't want it picking one for the user before they've picked a venue. Once the user picks a venue, a follow-up tool call returns its runs with proper booking URLs.
+  - Refactored: hoisted `course_name`/`course_code` into locals for readability across the three return paths.
+- **Verified**: isolated reproducer at `/tmp/test_isolated.py` exercised three cases against the live CATS API — (1) Drone+Jurong East returns 4 alt-venue runs (Toa Payoh) with no `booking_url` leakage and the expected "BUT classes ARE scheduled" message; (2) Drone+Toa Payoh hits the normal path with booking URLs; (3) Drone with no location filter returns 4 runs normally. All assertions passed.
+- **Note**: bash mount in the test environment was showing a stale truncated copy of `cassie_server.py`, but the Read tool confirmed the Windows file is intact at 1099 lines with the fallback branch correctly placed at lines 495–533. Patch is live in the deployed file.
+
+## [2026-05-21] update | Defensive fix for malformed booking links — scrub URLs + save raw reply to history
+
+- **Bug**: malformed booking link reappeared in production (drone+AI multi-topic query, 2026-05-21). Output was `<a href="[ ](URL_A)URL_B["](URL_C)" target="_blank">Book this class</a>` — Claude wrote a botched URL attempt inside her reply, server's clean append nested inside it via the href attribute.
+- **Root cause** (architectural, not a regex bug): two latent issues that the May-19 fix didn't fully close.
+  1. The server appended `<a href="URL">Book this class</a>` HTML and saved the full appended reply into conversation history. On the next turn Haiku saw that prior `<a>` in her own assistant turns and imitated the pattern — even though the persona told her not to.
+  2. The tool result still gives Claude all the raw fields needed to reconstruct the URL (class_id, dates, course_code, course_name, venue), and the KB resolves the venue to a full address. She has both means and template.
+- **Fix — `cassie-deploy/cassie_server.py`**:
+  - Added `_scrub_urls(text)` helper: regex-strips markdown links `[…](url)`, HTML anchors `<a …>…</a>`, and bare `https?://…` / `www.` URLs. Emails and phone numbers (no scheme) pass through untouched.
+  - In `get_cassie_reply()`: after collecting Claude's text, scrub URLs → save to `reply_raw` → only then append the server's clean `<a href>` for the outbound reply.
+  - Changed `history.append({"role": "assistant", "content": reply})` → uses `reply_raw` (the pre-append, URL-free version). Kills the imitation loop.
+  - `reply_raw` set in all four reply paths (normal, loop-exhausted, AuthError, generic Exception).
+- **Verified**: file parses cleanly (`python -m py_compile`); unit tests against the exact 1336-char malformed string from the bug — output 399 chars, URLs gone, content intact, "Book this class" inner text preserved (server then appends one clean booking link below).
+- **Side effect** during edit: Edit tool re-truncated the file tail (`/logs` route, 429 handler, entry point) — same recurring issue noted in 2026-05-19 log. Restored via `cat >> file << HEREDOC` after the truncation was detected by py_compile.
+- **NOT YET APPLIED**: `Cassie API Server/cassie_server.py` and `Cassie API Server/cassie_server_dev.py` — outside the connected Cowork workspace folder. Mark to mirror the same two changes (`_scrub_urls` definition + scrub call + `reply_raw` to history) per the three-server sync rule.
+
+## [2026-05-21] update | Fix SMS → WhatsApp confirmation wording across vault
+
+- Changed "SMS and email confirmation" to "WhatsApp and email confirmation" in 4 files:
+  - `faq/general.md` (class confirmation FAQ)
+  - `faq/registration.md` (post-payment FAQ)
+  - `policies/certification.md` (SOA result notification)
+  - `concepts/ola-platform.md` (OLA booking confirmation)
+
+## [2026-05-19] update | Fix booking link rendering — strip booking_url from tool result
+
+- **Root cause**: `booking_url` was included in the tool result JSON that Cassie sees. Haiku tried to write it as a markdown link but mangled the URL (wrong encoding, wrong params). The server then also appended its own HTML anchor (because Cassie's URL ≠ correct URL), producing two broken links.
+- **Fix**: `booking_url` is now extracted from `result` before Cassie sees it, then stripped from `result_clean` that goes into the tool_result message. Server always appends the clean HTML anchor from `booking_url_for_html`. Applied to `cassie-deploy/cassie_server.py` and `Cassie API Server/cassie_server.py`.
+- **Persona**: `## Booking Links` section rewritten — Cassie told that links are server-managed, never to write URLs, never to ask "want a booking link?".
+
 ## [2026-05-19] update | Bug fixes: booking URL # fragment, wikilink stripping, classifier context, persona brevity
 
 - **Fix — Booking URL `#` fragment bug**: `build_booking_url()` was encoding `#AB51` → `%23AB51`; Claude Haiku decoded `%23` back to `#` when writing the URL; browser treated `#` as fragment separator, stripping all query params after it. Fix: `clean_tag = (tag or "").lstrip("#")` — strips leading `#` before encoding so `%23` never appears. Applied to `cassie-deploy/cassie_server.py` and `Cassie API Server/cassie_server.py`.

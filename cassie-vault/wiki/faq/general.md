@@ -15,7 +15,7 @@ A: Four locations — Toa Payoh (HQ), Jurong East, Tampines, and The Adelphi at 
 A: Generally 9am–6pm. Food Safety courses run 9am–5:30pm. Exact times are listed on each course page.
 
 **Q: When will I know if my class is confirmed?**
-A: You'll receive an SMS and email confirmation after payment is completed.
+A: You'll receive a WhatsApp and email confirmation after payment is completed.
 
 **Q: Can I pay with NETS or credit card?**
 A: No. Accepted methods are Bank Transfer, Cash (Toa Payoh only), SkillsFuture Credit, and PayNow. See [[policies/payment-methods]].

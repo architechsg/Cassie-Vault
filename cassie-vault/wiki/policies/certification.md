@@ -16,7 +16,7 @@ All WSQ courses award a **Statement of Attainment (SOA)** upon successful comple
 Step-by-step guide: https://coursemology.sg/how-to-download-statement-of-attainment/
 
 ## When Will I Receive It?
-You will be notified by **SMS and email** after assessment results are processed. Processing time varies — typically within a few days to a couple of weeks after the course end date.
+You will be notified by **WhatsApp and email** after assessment results are processed. Processing time varies — typically within a few days to a couple of weeks after the course end date.
 
 ## Certificate Validity
 - **Food Safety Level 1** — valid 5 years; first renewal at 5 years, subsequent renewals every 10 years
