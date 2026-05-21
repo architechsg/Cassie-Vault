@@ -5,6 +5,31 @@ Types: `ingest`, `query`, `lint`, `update`
 
 ---
 
+## [2026-05-21] update | Day-of-week field added + scrubber catches unclosed `<a>` (recurring-review batch 1)
+
+- **Two production issues from Mark's first review batch (chats Wlshua/Food Safety, Visitor 868767/Office Mgmt)**:
+  1. **Cassie miscalls day-of-week.** Visitor asked "Any available days on weekdays" for Office Management. Cassie said *"30 May, 8 June, 24 June, 10 July are all Monday–Friday"* — but 30 May 2026 is a Saturday, AND 10 July was never in the original list (hallucinated). Root cause: `format_run` returned only ISO dates; Haiku cannot reliably compute weekdays from a date string.
+  2. **Malformed booking links keep showing up.** Same `<a href="[ ](URL%22)URL["](URL%22) target="_blank">Book this class</a>` pattern the 2026-05-21 01:23 token+scrub commit was meant to fix. Mark confirms the deploy is pushed. Live test of the current scrubber against the exact production string shows it WOULD strip it cleanly — so either the Plesk container hasn't picked up the new image yet, OR persona drift means Cassie is occasionally also emitting *unclosed* `<a>` shapes the old paired-anchor regex couldn't catch.
+- **Fix — `cassie-deploy/cassie_server.py`**:
+  - Added `_day_of_week(iso_date)` and `_is_weekend(iso_date)` helpers using `datetime.strptime(...).strftime("%A")` and `.weekday() >= 5`.
+  - `format_run` now returns two new fields per run: `day_of_week` (`"Monday"` or `"Monday–Friday"` for multi-day runs) and `is_weekend` (bool). Authoritative — Haiku must read, not compute.
+  - `_scrub_urls` extended with two extra regexes: orphan opener `<a\s[^>]*>` and orphan closer `</a\s*>`. Closes the case where Haiku's URL gets truncated by `max_tokens=1024` mid-output, leaving an unclosed `<a href="…" target="_blank">` that the paired-anchor regex couldn't match (bare-URL strip removed the href value but the empty `<a …>` shell still rendered as a broken click target).
+  - `datetime` added to the `from datetime import …` line.
+- **Persona — `cassie-vault/cassie-persona.md`**:
+  - Booking Links section: added explicit "URLs are forbidden in your replies. If you find yourself about to type http, https, www., coursemology.sg/course-registration, `<a href`, or anything resembling a clickable URL or anchor tag — STOP and write a `[[BOOK_<run_id>]]` token instead. Long invented URLs get truncated mid-output and leave broken HTML in the chat."
+  - Rule 3 (Handling results): two new bullets — "User asks about weekdays / weekends / a specific day of the week" (use `day_of_week` and `is_weekend` fields, never compute) and "Never mention a date that isn't in the tool result" (kills the 10 July hallucination class of bug).
+- **Verified**: `/tmp/test_e2e.py` confirms (a) `_day_of_week("2026-05-30") == "Saturday"` and `_is_weekend == True`, (b) paired malformed pattern (1158-char string from the user) strips to "Adelphi — June 5–12 Book this class", (c) unclosed `<a href>…target="_blank">` strips to plain text with no shell remaining, (d) `[[BOOK_*]]` tokens preserved untouched.
+- **Bash-mount staleness note**: `python3 -m py_compile` returned a phantom SyntaxError at line 1163; bash sees a stale 1171-line copy ending mid-string. Read tool confirms the actual Windows file is intact through `/logs` and the entry point. Same recurring sync issue noted in earlier 2026-05-19 and 2026-05-21 entries. Plesk reads the real file directly so this does not affect deployment.
+- **Next**: Mark to push `cassie-deploy/` (separate repo at github.com/architechsg/Cassie-Deploy) and verify Plesk pulls the new image. Watch the `/logs` endpoint for `[Scrub] stripped URL` warnings — if those fire frequently post-deploy, the persona needs another tightening pass.
+
+## [2026-05-21] update | Token substitution outputs markdown not HTML — SalesIQ Zobot was mangling `<a href>` tags
+
+- **Bug**: Visitor chat in production STILL showed `<a href="[ ](URL)URL["](URL)" ...>Book this class</a>` malformed soup, even though server-side logs clearly showed `[Tokens] substituted 4 token(s) in outbound reply` (the tokens WERE being substituted correctly to clean HTML anchors).
+- **Root cause**: SalesIQ's Zobot response pipeline runs an auto-linker over the text in the response body BEFORE the visitor sees it. When that auto-linker sees a URL inside an HTML `href="..."` attribute, it wraps it with `[ ](URL)URL["](URL)` markdown-link syntax and jams it back inside the href attribute — producing the nested malformed string. This is a SalesIQ-side behaviour, not something we control. Local `/chat` testing didn't show this because the local demo frontend just renders the HTML directly without that auto-linker.
+- **Fix — `cassie-deploy/cassie_server.py`**: `_substitute_booking_tokens()` now outputs markdown `[Book this class](URL)` instead of HTML `<a href="URL" target="_blank">Book this class</a>`. SalesIQ renders markdown natively as clickable links without post-processing. The local demo's markdown→`<a>` regex also handles `[label](url)` fine. Single-line change inside the substitution function. Order of operations unchanged: scrub URLs → save to history → substitute tokens (substitution still happens AFTER scrub so the markdown booking links it produces are not stripped).
+- **Why this only surfaced today**: every clean test today was via `/chat` endpoint with the local demo page. The Zobot mangling only manifests on the `/webhook/zobot` path → SalesIQ widget. Production was the first end-to-end Zobot+SalesIQ test of the new token output.
+- **Pending**: push to GitHub + friend rebuilds Docker. End-to-end test via SalesIQ widget required to confirm — local /chat can't replicate the bug.
+
 ## [2026-05-21] update | Alt-venue runs get booking_tokens too — fixes empty-map issue when venue fallback fires
 
 - **Bug**: User asked "moon cakes class in tampines" → no Tampines runs → fallback returned 3 Adelphi alt-venue runs WITHOUT booking_tokens (because format_run was called with course_fee omitted in the alt-venue path). conv_tokens map stayed empty. Cassie reasonably wanted to give booking links, invented 3 `[[BOOK_*]]` placeholders. Server stripped them silently, so user saw classes with no links at all. Follow-up turns (which referenced prior tokens) hit the same empty-map problem.
