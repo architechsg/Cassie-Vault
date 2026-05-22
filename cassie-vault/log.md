@@ -5,6 +5,33 @@ Types: `ingest`, `query`, `lint`, `update`
 
 ---
 
+## [2026-05-22] update | Logs untruncated + utm_chat=cassie added to booking URLs
+
+- **Two requests from Mark/Mr. Wee, both into `cassie-deploy/cassie_server.py`**:
+  1. **Logs too short to debug the booking URL bug.** `Cassie: {reply[:80]}` cut off after the first 80 chars — a 260-char booking URL was unreadable. Same for `User: {user_message[:80]}`, `[Tool result] ... [:200]`, `[Classifier] Raw response ... [:200]`, `[Zobot] Incoming: ... [:300]`, `[Guard] Pattern-blocked: ... [:80]`. All removed — log messages now carry full content.
+  2. **Need to differentiate Cassie-generated bookings from other entry points** (Mr. Wee's request via Mark). Added `&utm_chat=cassie` as a tenth query parameter in `build_booking_url`. Lets Mr. Wee filter Zoho deals / WordPress form submissions by `utm_chat` to see Cassie's contribution to bookings.
+- **Buffer also bumped**: `_LOG_BUFFER` deque maxlen 1000 → 5000 lines; `/logs` endpoint `n` cap 1000 → 5000, default 200 → 500. Untruncated lines average 200–500 chars so the buffer is now ~1–2 MB — still tiny on Render's free tier and gives ~5× more debugging history.
+- **Kept intentionally**: `conversation_id[:8]` and `chat_id[:8]` short prefixes in log lines (8 chars is enough to correlate a session, full UUIDs add noise without value), and `[:300]` slices on lines 836 and 873 which are classifier-context truncations, not log output.
+- **Verified**: sample URL with utm_chat is `https://coursemology.sg/course-registration/?class_id=1328866&...&course_fee=741.2&utm_chat=cassie` — 278 chars total (was 262 before utm_chat, still well under the previous 280–362 range from before today's `class_location` shortening).
+- **Action for Mark**: push `cassie-deploy/` so friend rebuilds Docker. Once live, the SalesIQ widget should produce booking URLs that (a) Zoho will accept (short class_location), (b) survive the SalesIQ auto-linker cleanly, and (c) tag the deal source as `utm_chat=cassie`. The `/logs` endpoint will then carry full Cassie replies for end-to-end debugging if anything else surfaces.
+
+## [2026-05-22] update | class_location uses short venue name (fixes Zoho 120-char limit + SalesIQ multi-link mangling)
+
+- **Two related production issues reported today by Mark (and confirmed by Haryo via WhatsApp)**:
+  1. **Zoho CRM rejecting form submissions.** Haryo flagged: `&class_location` was exceeding Zoho's `maximum_length: 120`. Live check: Tampines full address URL-encoded is **121 chars** — exactly over the limit. Toa Payoh is 113 chars (under, but close). The booking form submitted from coursemology.sg/course-registration/ was failing silently on the CRM side.
+  2. **One booking link contained pieces of ALL 3 venue addresses.** Production chat #19059 — visitor asked for Artisan Breads, Cassie produced one `[Book this class](...)` markdown link, but its URL contained `class_id=1328866` (Adelphi) yet the `class_location` value interleaved Adelphi + Toa Payoh + Tampines (twice) + Singapore 179803. The interleaved class IDs in the URL (`1328891`, `31863`, `1330047`, `1330055`) were the run_ids of the OTHER 4 AT43 classes Cassie had tokens for. SalesIQ's Zobot auto-linker — the same one that mangled HTML `<a>` tags pre-token migration — appears to also mangle multiple adjacent markdown booking links when the URLs are very long. The previous full-address URL was 280–362 chars per link; with 5 in a reply, the auto-linker chained them.
+- **Root cause**: `build_booking_url` was expanding the CATS API's short `location_name` ("Adelphi @ City Hall", "Toa Payoh Central") to a full street address via a hardcoded `LOCATION_ADDRESSES` dict. This was the wrong shape from the start — every other Coursemology system (api.ola.sg endpoint, WordPress registration form, Haryo's reference snippet showing `location: "Ubi Workshop"`) uses the short name. The expansion only fit by luck and broke as soon as URLs got chained.
+- **Fix — `cassie-deploy/cassie_server.py`**:
+  - Deleted `LOCATION_ADDRESSES` dict (lines 244–252) and `resolve_location_address()` (lines 381–388) — both now unused.
+  - `build_booking_url` passes the CATS `location_name` through directly: `short_location = location_name or ""`.
+  - Replaced the deleted dict with a comment block explaining why we use the short name (both bugs above, plus parity with sister systems).
+- **Verified** (`/tmp/verify_fix.py`, isolated against live CATS API for course_id=1789):
+  - All 9 AT43 runs now produce `class_location` of 16–19 chars (was 57–113 chars, with Tampines hitting 113 and over Zoho's 120 limit under any encoding overhead).
+  - Full booking URL is now 253–262 chars (was 280–362).
+  - Sample for class_id=1328866 from bug report: `https://coursemology.sg/course-registration/?class_id=1328866&...&class_location=Adelphi+%40+City+Hall&deal_value=741.2&course_fee=741.2` — clean, single venue, well under all limits.
+- **Bash-mount staleness note**: same recurring issue — bash sees a cached binary copy of cassie_server.py so live reimport showed `LOCATION_ADDRESSES still imports`. Read tool confirmed the actual Windows file is correct. Worked around by inlining the fixed logic in the verifier rather than importing the module. Plesk reads the real file directly so this does NOT affect deployment.
+- **Next**: Mark to push `cassie-deploy/` (separate repo at github.com/architechsg/Cassie-Deploy) so friend rebuilds the Docker image and Plesk picks it up. Verify via SalesIQ widget — post-fix the bug should disappear because each markdown booking link is now ~260 chars instead of ~330, which (a) keeps each individual `class_location` value under Zoho's 120 limit and (b) is short enough that the auto-linker no longer chains adjacent links into one corrupt URL.
+
 ## [2026-05-21] update | Day-of-week field added + scrubber catches unclosed `<a>` (recurring-review batch 1)
 
 - **Two production issues from Mark's first review batch (chats Wlshua/Food Safety, Visitor 868767/Office Mgmt)**:
