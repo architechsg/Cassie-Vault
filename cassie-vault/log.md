@@ -5,6 +5,37 @@ Types: `ingest`, `query`, `lint`, `update`
 
 ---
 
+## [2026-05-24] update | First-turn warmth — opening reply gets 2–3 sentences instead of curt one-liner
+
+- **Trigger**: Mark felt the new canonical "How do I register?" reply ("I can help you book right here — what course are you interested in?") was too short and direct for the *first* substantive reply in a conversation. Read as customer-service-y / cold for a moment that's actually trust-building.
+- **Principle added**: brevity is still the default for follow-up turns and factual answers, BUT the opening reply (especially when the visitor hasn't given Cassie a concrete course or topic yet — e.g. tapped a generic chip) deserves 2–3 sentences: warm acknowledgement → what Cassie can do → funnel question. After the first turn, snap back to brevity.
+- **Edits to `cassie-persona.md`**:
+  1. **Response Style** — new bullet "Exception — first-turn warmth" added directly under the "Be brief" bullet so the brevity rule still leads but the exception is unmissable.
+  2. **Rule 0** — "Shape of the right answer" updated to the warmer 3-sentence version Mark picked: *"Great question! The easiest way is to just tell me which course you're interested in — I can pull up the next available class right here and send you a booking link that pre-fills the registration form for you. What are you looking to learn?"* Cross-reference to first-turn warmth added.
+  3. **Example Flows — "How do I register?"** — canonical updated to match Rule 0. Annotation added noting this is opening-turn warmth and that follow-ups stay brief.
+- **Action for Mark**: re-push `cassie-vault` and ask friend to rebuild Docker so the persona is reloaded. Then re-run test A1–A5 from the test set — same pass criteria (don't send to website) but the pass shape is now the longer warmer reply, not the one-liner.
+
+## [2026-05-24] update | Cassie reframed as booking channel (not brochure) — persona + registration FAQ rewritten
+
+- **Trigger**: two production chats where users tapped the SalesIQ chip "How do I register for a class?". Cassie answered correctly per the KB — but the KB and persona were written before the booking-link/token system existed. She told visitors to go to coursemology.sg and click "Book Class" themselves, instead of offering to generate a pre-filled booking link via `get_course_schedule`. Conversion KPI undermined.
+- **Diagnosis**: `wiki/faq/registration.md` Q1 was literally telling Cassie to send users to the website. `cassie-persona.md` reinforced this with "What you CANNOT do → Make or confirm bookings" — which framed booking as off-Cassie rather than as the *purpose* of every course-interest conversation.
+- **Fixes (single coherent commit)**:
+  1. **`wiki/faq/registration.md` Q1 rewritten** — now leads with "I can help you book directly here — just tell me which course you're interested in" before mentioning the website as a self-serve fallback.
+  2. **`cassie-persona.md` — Mission section added** (above Personality): states Cassie's primary purpose is to hand visitors a booking link, that she IS the booking channel not a brochure, and that friction reduction (not sales pressure) is the value prop.
+  3. **`cassie-persona.md` — "What you CANNOT do" rewritten**: removed "Make or confirm bookings" (misleading); replaced with the actual limits — can't process payment, can't modify existing bookings, can't handle bulk corporate. Generating booking links IS booking.
+  4. **`cassie-persona.md` — Rule 0 added** (above Rule 1): "You are the booking channel, not a brochure". Names the shape of the right answer for "how do I register?" + lists forbidden phrases ("go to coursemology.sg", "find your course on the website", "click Book Class on the course page") + lists when website mentions ARE acceptable (visitor explicitly wants to browse, info genuinely out-of-scope, post-booking).
+  5. **`cassie-persona.md` — Rule 6 added** (after Rule 5): soft funnel after factual answers. One short follow-up offer max ("Want me to find the next available class?") — not after every answer, not chained.
+  6. **`cassie-persona.md` — Example Flows section appended** (after Booking Links): canonical shapes for "how do I register?", "tell me about your courses", "Dumpling making" (no-such-course case — call tool first, then offer closest alternative; never deflect with "outside what I can help with"), "Excel" (specific course), "How do I cancel?" (correctly off-Cassie), "How much is food safety?" (pricing is in tool).
+- **Both files updated `last_updated` to 2026-05-24**.
+- **Action for Mark**: push `cassie-vault` AND `cassie-deploy` (persona is baked into `cassie_server.py` system prompt at startup, so the Docker container needs to restart to pick up the new persona). Monitor next 10–20 production chats for: (a) "go to website" anti-pattern disappearing, (b) booking-link rate per conversation rising, (c) no over-correction into pushy/salesy language. Later: instrument `utm_chat=cassie` click-through in Zoho to measure actual conversion lift.
+
+## [2026-05-24] update | Booking link issue confirmed resolved in production
+
+- Mark confirmed the production booking link bug is fixed.
+- Resolution chain: token-placeholder architecture (2026-05-21) → unclosed `<a>` scrubber + day_of_week field (2026-05-21) → short venue `class_location` (2026-05-22) → untruncated logs + `utm_chat=cassie` (2026-05-22). Friend's Docker rebuild + Plesk pull picked up all changes.
+- Cassie now consistently emits one clean per-class link, no malformed `<a>` shells, and Zoho accepts the form submissions. Project memory updated to mark booking link work complete.
+- Next focus unblocked: `cassie_widget.js` for WordPress embed.
+
 ## [2026-05-22] update | Logs untruncated + utm_chat=cassie added to booking URLs
 
 - **Two requests from Mark/Mr. Wee, both into `cassie-deploy/cassie_server.py`**:

@@ -1,12 +1,12 @@
 ---
 tags: [faq, registration, booking]
-last_updated: 2026-05-08
+last_updated: 2026-05-24
 ---
 
 # FAQ — Registration & Booking
 
 **Q: How do I register for a course?**
-A: Go to coursemology.sg, find your course, click "Book Class" (individual) or "Corporate Booking" (employer-funded). Fill out the registration form using a **unique email per person**, then make payment to confirm your spot.
+A: I can help you book directly here — just tell me which course you're interested in and I'll find the next available class with a booking link that pre-fills the form for you. If you'd rather browse yourself, courses are at coursemology.sg → "Book Class" (individual) or "Corporate Booking" (employer-funded). Either way: each person needs a **unique email**, and payment confirms the spot.
 
 **Q: Can two people share an email address to register?**
 A: No. Each person must register with their own unique email address.
