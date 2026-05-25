@@ -5,6 +5,51 @@ Types: `ingest`, `query`, `lint`, `update`
 
 ---
 
+## [2026-05-26] update | Two production fixes from last night's SalesIQ review (classifier course-blindness + em dash AI-tell)
+
+- **Problem 1: classifier blocked legitimate course noun phrases.** Two confirmed cases: "Dumpling making" (image 1 from Mark's review) and "Microsoft Word" (reported earlier). Classifier prompt had no awareness of Coursemology's actual catalogue, so course names that sound like recipes/hobbies in isolation were treated as off-topic. Worst part: persona ALREADY had a "Dumpling making" example flow (line 236-239) that gracefully says "we don't run that, but we have artisan bread, want to see that?" — but the classifier intercepts before that designed behaviour can fire. Visitor sees the cold deflection and bounces.
+- **Fix**: edited `CLASSIFIER_SYSTEM` in `cassie-deploy/cassie_server.py` to:
+  - Lead with an exhaustive list of Coursemology's course categories (food safety, baking, vehicle maintenance, AI/tech, MS Office, cleaning, admin/HR, first aid, beauty/hair, drone/media, ecommerce, other workshops) with example phrasings under each.
+  - Add an explicit "any short noun phrase under 5 words → default ALLOW" rule.
+  - Add a section "Examples of messages that MUST be ALLOWED (these have all been wrongly blocked in the past)" listing dumpling, microsoft word, drone, sake, makeup, hair cutting, AED, dim sum, aircon, EV, shopee, powerpoint.
+  - Strengthen the golden rule: blocking a genuine enquiry is FAR worse than letting an off-topic message through (Cassie can deflect it gracefully herself).
+- **Problem 2: Haryo flagged em dashes (—) as obvious AI tell.** Looking at second image, Cassie's reply used multiple em dashes in a single short message. Root cause: the persona file itself had ~50 em dashes, which Haiku was faithfully imitating. Telling Haiku "don't use em dashes" while showing it 50 of them in the system prompt would never stick.
+- **Fix**:
+  - Added new top-of-list rule in `cassie-persona.md` Response Style section: "Never use em dashes." Explains what an em dash is, why it reads as AI, and what to use instead (commas, hyphens with spaces, parentheses, new sentences).
+  - Stripped em dashes throughout the entire persona file — every em dash replaced with a context-appropriate alternative (comma / period / colon / parens). Only one em dash remains in the persona, inside the rule definition itself so Haiku can identify the character. En dashes (–) for ranges like "21–39" or "19–21 June" preserved.
+  - **No server-side regex scrubber.** Mark explicitly declined defence-in-depth on this one — wants Cassie to follow the persona rule directly rather than have us mangle her output post-hoc.
+- **Verification**: ran `python3 -c "import ast; ast.parse(...)"` on the modified server file — syntax OK. Grep on persona confirms only the one intentional em dash remains (line 56, inside the rule definition).
+- **Next**: Mark to deploy the changes to Render and watch SalesIQ closed-chats over the next day or two for both (a) zero false-blocks on course noun phrases and (b) zero em dashes in Cassie's replies.
+
+## [2026-05-25] update | Feedback-loop architecture v2 after Weixing's feedback — decoupled from CATS, Zoho-aggregate attribution
+
+- **Weixing reviewed the v1 proposal (sent 2026-05-24) and pushed back on the cross-DB JOIN** for principled security reasons. His direct quote: *"a customer-facing AI solution should never have access to operational DB in any way. We can expose it via api / dedicated tools."* Also his rule of thumb: *"avoid touching the main database unless we absolutely need to. Try to decouple the bot from main business logic."* Both correct. Mark accepted on security grounds.
+- **Key context I (Claude) was missing**: visitor-level tracking is already implemented via UTM cookies in Zoho — a unique ID is generated when a visitor opens the website, follows them through page views, sign-up, and course completion. So per-conversation attribution doesn't need to be invented from scratch; it's a piping problem (Zoho → somewhere queryable). Mark noted this tracking column doesn't currently land in MySQL `class_registration` — would need OLA logic change to accept and persist. Mark agreed this is nice-to-have, not blocker.
+- **Decisions agreed**:
+  - **DB moves into cassie_server's docker-compose** (MySQL container alongside cassie_server.py). NOT a database on s2.architech.sg. Weixing endorsed: *"You can add a db component in docker compose to start using it right away."*
+  - **No cross-DB JOIN** — the "killer feature" of the v1 plan is dropped. Cassie's DB is fully decoupled from CATS.
+  - **Attribution via Zoho aggregate** for Phase 1 (daily cron pulls Cassie-attributed deal totals into `daily_stats`). Per-conversation attribution deferred to Phase 5 (would need CATS API endpoint OR Xingjian's monitoring setup to surface Zoho's UTM tracking).
+  - **Review interface = Lark Base** (not Airtable). Weixing flagged Airtable's 1k record free-tier limit; Lark is what their team uses, Singapore-popular, more generous free tier. Sheets + n8n is the fallback.
+  - **Xingjian mentioned setting up website tracing as part of monitoring** — if that happens, we get the per-conversation tracking for free.
+- **Revised phase plan**: P1 logging foundation (Docker compose MySQL + async writes) → P2 dashboard + Zoho-aggregate stats → P3 nightly classifier + grader → P4 Lark Base review interface → P5 (deferred) per-conversation attribution if needed.
+- **Diagram updated to v2** at `cassie-feedback-loop-architecture.html`:
+  - Section 1: cassie_db is now inside the chatbot.h5.sg docker-compose, not on s2.architech.sg. Added a "Decoupled from CATS" callout explaining the API-only access principle.
+  - Section 2: dropped the cross-DB schema panel; added a `daily_stats` table with `zoho_cassie_deals` and `zoho_cassie_revenue` columns. SQL example replaced with "how we get conversion data without touching CATS DB" + Zoho cron explanation.
+  - Section 3: step 4 updated from "Push to Airtable" → "Push to Lark Base", step 5 updated from "Dad" → "Mr. Wee" (more respectful framing for sharing externally).
+  - Weixing's ask box rewritten: nothing to provision on s2.architech.sg; just sanity-check the docker-compose change; Zoho API credentials are the only future ask.
+  - Added a new "Key principles agreed" callout at the bottom listing the four decisions Mark and Weixing landed on.
+- **Action for Mark**: send the v2 HTML to Weixing for final sign-off, then start Phase 1 (docker-compose MySQL container + async logging from cassie_server.py).
+
+## [2026-05-24] update | Feedback-loop architecture proposal drafted for Weixing review
+
+- **Context**: current Cassie improvement loop is fully manual — Mark scrolls SalesIQ closed-chats every few days, picks issues, brings to Claude. Inefficient and biased toward whatever Mark happens to see. Proposed automating selection + adding human-in-loop review by Mr. Wee + live agents.
+- **Architecture agreed in chat**: log every Cassie turn to a new `cmlg_cassie` MySQL schema on s2.architech.sg (alongside CATS's existing `cmlg_staging`). Async writes from `cassie_server.py` with local fallback file for resilience. Nightly cron classifies + grades each chat via Haiku, picks worst-per-topic + outcome-regret + KB-gap chats, pushes top 10–15 to Airtable for Mr. Wee + live agents to grade & comment. Mark exports reviewed comments weekly, brings to Claude for persona/KB diffs.
+- **Killer feature**: JOIN between `cmlg_cassie.conversations` and `cmlg_staging.class_registration` on `utm_chat` → can finally measure real paid-booking conversion, not just link clicks. `utm_chat=cassie` parameter already on booking URLs (since 2026-05-22 fix), so no booking-link changes needed.
+- **Initial DB recommendation was SQLite (lazy default)**; Mark pushed back, MySQL is the right call because (a) reuses existing infra, (b) Weixing knows it, (c) enables the JOIN.
+- **Phase plan**: P1 logging foundation (week 1) → P2 metrics dashboard (week 2) → P3 nightly classifier + grader (week 3) → P4 Airtable review interface (week 4) → P5 pattern synthesis (later, only if needed).
+- **Deliverable**: architecture diagram saved at `cassie-feedback-loop-architecture.html` (workspace root). Three sections: runtime data flow, DB schema with JOIN example SQL, daily/weekly review cycle. Bottom callout lists what's needed from Weixing (~30 min of his time: create DB, grant user, sanity-check schema, confirm utm_chat capture into class_registration).
+- **Action for Mark**: share the HTML with Weixing, get his sign-off (or pushback) on the schema + JOIN approach. Once approved, Phase 1 implementation starts.
+
 ## [2026-05-24] update | First-turn warmth — opening reply gets 2–3 sentences instead of curt one-liner
 
 - **Trigger**: Mark felt the new canonical "How do I register?" reply ("I can help you book right here — what course are you interested in?") was too short and direct for the *first* substantive reply in a conversation. Read as customer-service-y / cold for a moment that's actually trust-building.
