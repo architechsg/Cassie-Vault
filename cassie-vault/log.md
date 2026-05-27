@@ -21,6 +21,59 @@ Types: `ingest`, `query`, `lint`, `update`
 - **Verification**: ran `python3 -c "import ast; ast.parse(...)"` on the modified server file — syntax OK. Grep on persona confirms only the one intentional em dash remains (line 56, inside the rule definition).
 - **Next**: Mark to deploy the changes to Render and watch SalesIQ closed-chats over the next day or two for both (a) zero false-blocks on course noun phrases and (b) zero em dashes in Cassie's replies.
 
+## [2026-05-27] update | Phase 1 complete — db_logger + /admin/conversations admin pages
+
+- **Phase 1 Python integration landed.** Three new files in `cassie-deploy/`:
+  1. **`db_logger.py`** (343 lines) — background-thread queue + MySQL writer with JSONL fallback file. `DBLogger.log_turn()` is non-blocking; the daemon thread drains the queue and writes to cassie_db. On MySQL failure, events spill to `/app/db_fallback/queue.jsonl` (on the `cassie_fallback_data` Docker volume). The fallback file is auto-drained on worker startup AND on every successful write after a failure. Module-level singleton `db_logger` started once on app boot.
+  2. **`admin_routes.py`** (457 lines) — Flask Blueprint with `/admin/conversations` (list view with date/topic/status/has-link/search filters + pagination) and `/admin/conversations/<chat_id>` (detail view with full transcript, tool call args/results, scrubber-fire flags, per-turn latency + token counts). Templates inline via Jinja2 `render_template_string`. Auth via `X-Chat-Key` header OR `?key=` query param using existing `ZOBOT_SECRET`.
+  3. **`cassie_server.py`** modified — added `import time`, imports for `db_logger` + `admin_bp`, started logger after `app = Flask(__name__)`, registered admin blueprint, added 4 `db_logger.log_turn()` calls in `get_cassie_reply()` (one for user turn at entry, one for cassie tool-use turn, one per tool call, one for cassie final reply with `scrubber_fired` + `contained_booking_link` flags).
+- **`Dockerfile` updated** to COPY the two new Python files alongside cassie_server.py.
+- **Schema unchanged** — all writes target the existing `conversations` + `turns` tables created in Phase 1 scaffolding. UPSERT on `conversations.salesiq_chat_id` increments `total_turns` on every turn, ORs in `contained_booking_link`, COALESCEs in `visitor_id_hash` if not previously set.
+- **Bash-mount staleness recurred** during syntax verification — bash sandbox saw a truncated 1297-line copy of cassie_server.py while Read tool saw the correct 1314+ lines. Confirmed all edits landed correctly via grep. This is harmless for Plesk deployment (Plesk reads the real file).
+- **Action for Mark**: push `cassie-deploy` to GitHub. Once friend rebuilds Docker, verify the 6-step Phase 1 checklist from PHASE1_PLAN.md (MySQL healthy → schema created → cassie connects on startup → real chat writes a row → async non-blocking on DB outage → /admin/conversations renders).
+
+## [2026-05-26] update | Phase docs collated in cassie-deploy/misc/, README updated, Lark lifecycle refined for push
+
+- **5 phase infographics created in `cassie-deploy/misc/`**: phase-1-logging-foundation, phase-2-metrics-dashboard, phase-3-classifier-grader, phase-4-lark-review, phase-5-pattern-synthesis. Each self-contained HTML, no chat-specific context, purely factual.
+- **Plus 2 reference docs in `cassie-deploy/misc/`**: feedback-loop-architecture.html (overview, schema, 8-step weekly cycle) and column-lifecycle.html (7-stage column-level data flow).
+- **README rewritten** for cassie-deploy: feedback-loop section with full phase table + status, references to all misc/ files, setup steps include MYSQL_ROOT_PASSWORD + DB_PASSWORD + backup cron, endpoints table covers existing + Phase 1/2/4 admin endpoints, architecture diagram updated to show cassie_db.
+- **Design refinements landed this session**:
+  - Lark Base "Archived" status added (Status: Unreviewed → In Progress → Reviewed → Archived). The /admin/weekly-export endpoint flips records to Archived after sync; Lark Form view filters Archived out so reviewer queue stays clean. No table reset needed.
+  - On-demand sync (was nightly cron in v2): /admin/weekly-export now does pull-from-Lark + update-cassie_db + flip-to-Archived + return-markdown in one idempotent call. Removed pull_from_lark.py nightly cron from Phase 4 scope.
+  - Conversation-level granularity in Lark confirmed (not turn-level). One record = one full conversation. Reviewer Comment free text allows turn-level callouts when needed. Rejected turn-level granularity because it'd 5-10x records and lose context.
+  - Three admin endpoints total: /admin/conversations (Phase 1, browse + filters), /admin/dashboard (Phase 2, Chart.js KPIs), /admin/weekly-export (Phase 4, Claude-paste digest). All auth-gated via ZOBOT_SECRET.
+- **Action for Mark**: pushing `cassie-deploy` to GitHub tonight with current state. Phase 1 Python integration deferred to next session — schema is ready but no code is writing to it yet, so functional Cassie behaviour is unchanged. Friend can rebuild Docker safely at any time; cassie_db container will spin up cleanly and sit idle until db_logger.py is added next session.
+
+## [2026-05-26] update | Lark chosen over Airtable; cron-to-Lark mechanics designed; column-lifecycle diagram drafted
+
+- **Reviewer interface decision: Lark Base.** Mark weighed Lark vs Airtable; Lark wins because (a) Weixing AND Xingjian already use it (zero onboarding for the team), (b) free tier has generous record cap vs Airtable's 1,000-record limit which we'd hit in ~3 months, (c) Singapore data centers (PDPA-friendly). Tradeoff acknowledged: Airtable has objectively better reviewer UX, but migration is half a day if Lark turns out to be a problem. Plan: set up Lark Base "Form view" so reviewers don't see a scary spreadsheet grid.
+- **Cron-to-Lark mechanics designed (Phase 4)**: nightly cron script lives in cassie-deploy. Either a `cassie_cron` Docker service or Plesk system cron. Auth pattern: `app_id + app_secret` → `tenant_access_token` (2hr lifetime, SDK auto-refreshes) → POST records to Lark Base via REST. 4 new env vars Weixing provisions in Lark Developer Console (LARK_APP_ID, LARK_APP_SECRET, LARK_BASE_TOKEN, LARK_TABLE_ID). App scope: minimum needed (read/write only the one Base). Idempotency: cron checks `review_status='unreviewed'` before pushing, sets to `'in_review'` after success. PII redaction (regex NRIC/email/phone) BEFORE sending to Lark — reviewers never see raw PII.
+- **Column-lifecycle diagram drafted** at `cassie-column-lifecycle.html`. 7 stages from "all-day Cassie chats" through "weekly Mark+Claude review" showing exactly which columns get Written/Read/Updated at each stage, in cassie_db AND Lark AND Zoho. Includes a cheat sheet at the bottom grouping columns by lifecycle pattern. Mark requested this because he was getting confused about how each column flows through the weekly loop.
+- **Memory updated** — project_cassie_chatbot.md now reflects Phase 1 scaffolding done (4/6) + Lark decision + cron design + column lifecycle reference.
+- **Three workspace artifacts ready for Weixing review**:
+  1. `cassie-feedback-loop-architecture.html` — v2 architecture (decoupled, Lark, Zoho aggregation)
+  2. `cassie-phase1-implementation.html` — Phase 1 infographic with 4/6 status progress bar
+  3. `cassie-column-lifecycle.html` — column-by-column lifecycle through the weekly loop
+- **Action for Mark**: send all three artifacts to Weixing for his eyes-on-design pass before any code goes live. Next session: complete the remaining 2 Phase 1 tasks (db_logger.py + /admin/conversations) so Weixing can rebuild Docker with a fully-wired system.
+
+## [2026-05-25] update | Phase 1 infrastructure scaffolding — schema, docker-compose, env (Python integration deferred)
+
+- **Started Phase 1 of the feedback loop**. Four files added/modified in `cassie-deploy/`:
+  1. **NEW `PHASE1_PLAN.md`** — shareable plan doc covering scope, file changes, deploy sequence, Weixing's ask, verification checkpoints, backup strategy, rollback plan, and open decisions. Mark can show this to Weixing alongside the v2 architecture diagram.
+  2. **NEW `init.sql`** — full schema (conversations + turns + daily_stats tables). Heavily commented to teach Mark MySQL concepts (InnoDB engine, ACID, indexes, composite indexes, foreign keys with CASCADE, JSON columns, ENUM, utf8mb4 for emojis). Auto-runs on first `cassie_db` container start via `/docker-entrypoint-initdb.d/`. Seeds one empty `daily_stats` row for today.
+  3. **MODIFIED `docker-compose.yml`** — added `cassie_db` service (mysql:8.0, no public port, healthcheck, init.sql mount); added `cassie_db_data` and `cassie_fallback_data` named volumes; added DB env vars to `cassie` service; added `depends_on: condition: service_healthy` so Cassie waits for MySQL ready. Loopback-only port pattern on the cassie service preserved.
+  4. **MODIFIED `requirements.txt`** — added `pymysql>=1.1.0` (pure-Python driver, no compilation needed).
+  5. **MODIFIED `.env.example`** — documented the two new required vars (`MYSQL_ROOT_PASSWORD`, `DB_PASSWORD`) + noted the other DB connection vars are wired via docker-compose env not .env.
+- **Deferred to next session (Phase 1 part 2)**: the actual Python integration — `db_logger.py` module (background-thread queue, async writes, local fallback file drain logic) + hooks into `get_cassie_reply()` + new `/admin/conversations` endpoint. These are bigger changes that deserve a focused session.
+- **Schema decisions worth flagging**:
+  - `conversations.salesiq_chat_id` is UNIQUE-indexed → no duplicate conversation rows even if SalesIQ retries a webhook.
+  - `turns` uses BIGINT PK because turns grow ~5× faster than conversations.
+  - `visitor_id_hash` stores SHA-256 of the visitor ID — never the raw ID. Privacy default.
+  - `topic`, `quality_score`, `review_status`, `reviewer_grade`, `reviewer_comment` are all nullable so Phase 1 can write rows without any nightly classifier yet running.
+  - Foreign key on `turns.conversation_id` with `ON DELETE CASCADE` — deleting a conversation auto-deletes its turns.
+- **Open decisions documented in PHASE1_PLAN.md** (defaults picked, can revisit): MySQL 8.0 vs MariaDB; single .env vs separate DB env file; auth scheme for `/admin/conversations` (ZOBOT_SECRET reuse for now).
+- **Action for Mark**: skim the four changes, push to `architechsg/cassie-deploy` when comfortable, but DON'T have Weixing rebuild yet — the Python integration in the next session needs to land before rebuild so we don't have a half-wired system in prod. (Alternative: push to a feature branch and let Weixing eyeball it.)
+
 ## [2026-05-25] update | Feedback-loop architecture v2 after Weixing's feedback — decoupled from CATS, Zoho-aggregate attribution
 
 - **Weixing reviewed the v1 proposal (sent 2026-05-24) and pushed back on the cross-DB JOIN** for principled security reasons. His direct quote: *"a customer-facing AI solution should never have access to operational DB in any way. We can expose it via api / dedicated tools."* Also his rule of thumb: *"avoid touching the main database unless we absolutely need to. Try to decouple the bot from main business logic."* Both correct. Mark accepted on security grounds.
