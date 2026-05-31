@@ -5,6 +5,59 @@ Types: `ingest`, `query`, `lint`, `update`
 
 ---
 
+## [2026-05-31] update | Persona Rule 3 tightened + server loop-guard bumped (Excel-PSEA failure mode fix)
+
+- **Smoke test surfaced a real failure:** `"Is the Excel basic course PSEA eligible?"` → Cassie made 3 tool calls in a row (`Excel Basic` → fail, `Workplace Productivity using Excel Basic` → fail, `Excel` → ambiguous with 3 matches), then server's loop guard fired with "I ran into a loop trying to answer that."
+- **Root cause:** two layers.
+  - Persona Rule 3 ambiguous-result handling was too vague ("Present the results, ask user to confirm"). No explicit "STOP retrying" instruction, so model kept blind-guessing query variations.
+  - Persona had no instruction for `found: false` (course-not-found, distinct from empty `upcoming_classes`). Cassie defaulted to retry behavior on both.
+  - Server `max_tool_rounds = 3` was just-too-few for any worst case (1 weak attempt + 1 better attempt + 1 final ambiguous = 3 rounds, no headroom to process the ambiguous result).
+- **Fixes:**
+  - **persona Rule 3 rewritten** — replaced 2 vague bullets with 3 explicit cases: `found: false`, `ambiguous: true`, `classes-empty`. Each case spells out: at most 1 retry / no retry / soft fallback. Top of the section now reads "**never blind-retry the tool with different query strings**." Old vague "Ambiguous: Present results, ask to confirm" → "**STOP calling the tool.** Do not try to narrow it down with a more specific query — the user knows what they want better than your guesses."
+  - **server `max_tool_rounds` 3 → 5** in cassie-deploy/app/server.py (`get_cassie_reply`). Defence in depth in case persona drift causes a retry anyway. Comment explains the test failure that prompted it.
+- **Bumped persona last_updated.**
+
+---
+
+## [2026-05-31] update | Strip per-course funding flags from vault + expand persona Rule 5
+
+- **Follow-up sweep after the price strip.** Mark spotted the same hallucination class applied to UTAP / PSEA / Mid-Career SFC top-up flags: CATS is the operational system that tracks these per course, so the vault should not assert them. Persona Rule 5 already said "PSEA and UTAP eligibility live ONLY in the tool" (line 164) — the vault had been silently contradicting it.
+- **Verified gating condition before stripping:** confirmed CATS tool returns `pricing.utap_eligible`, `pricing.psea_eligible`, `pricing.mces_top_up` per course (booleans). Confirmed CATS does NOT surface funding-window end dates (e.g. "Funding until: 1 Dec 2027") — so those `Funding until: X` lines and `funding_expiry:` frontmatter STAY (Mark's rule: only strip what CATS can answer).
+- **Surprising finding during verification:** Hair Cutting WSQ (#AB81) vault said "No PSEA" but CATS returns `psea_eligible: true`. Vault was actively wrong, not just stale. After strip this is moot.
+- **What got stripped:** every `UTAP eligible / no UTAP`, `PSEA eligible / no PSEA`, `AddSFC eligible`, `Mid-Career SFC eligible / no Mid-Career` per-course line across 7 catch-all course files:
+  - `admin-hr/admin-hr-courses.md` — dropped "No UTAP, no PSEA" notes from AB71 + AB72
+  - `beauty/beauty-courses.md` — AB81 "SFC eligible, UTAP eligible. No PSEA" → "SFC eligible (WSQ)"; AB82 likewise. Also reworded header.
+  - `cleaning/cleaning-courses.md` — 7 entries had "SFC eligible, UTAP eligible, PSEA eligible (+ AddSFC)" → all collapsed to "SFC eligible (WSQ)"
+  - `drone-media/drone-media-courses.md` — 4 entries normalised to "SFC eligible (WSQ)"
+  - `ecommerce/ecommerce-courses.md` — 2 entries
+  - `first-aid/first-aid-courses.md` — header + BCLS+AED dropped "no UTAP, no PSEA"
+  - `ms-office/ms-office-courses.md` — 4 entries (AB22/AB23/AB24/AB51) normalised
+  - `baking-cooking/private-workshops.md` — header reworded
+  - `other/other-courses.md` — already clean (private courses only said "No subsidy")
+- **What was KEPT:** `SFC eligible (WSQ)` lines (Mark's call — SFC eligibility is structural to WSQ status, not drift-prone, and helps Cassie answer "is this SkillsFuture eligible?" without a tool call); `Funding until: <date>` lines (CATS doesn't surface); `funding_expiry:` frontmatter on individual course files (CATS doesn't surface); `No subsidy` on Private and Non-WSQ courses (structural — private/non-WSQ courses by definition have no SSG funding).
+- **Persona edit:** `cassie-persona.md` Rule 5 title + body updated to cover UTAP / PSEA / Mid-Career SFC top-up explicitly (previously only PSEA + UTAP). Dropped the "Even if a course page mentions funding options..." hedge since vault no longer carries the flags. Added explicit note that WSQ vs Private vs Non-WSQ classification IS safe to quote from vault. Bumped `last_updated`.
+- **Header pattern across all catch-all course files**: every page header now ends with "Call `get_course_schedule` for live pricing and UTAP/PSEA/Mid-Career SFC top-up eligibility." — this gives the LLM an explicit pointer at the top of each page so the call habit forms even on questions that don't name pricing directly.
+- **Verification:** `grep "UTAP eligible|PSEA eligible|AddSFC|Mid-Career.*eligible|No UTAP|No PSEA"` across `wiki/courses/` returns zero hits.
+
+---
+
+## [2026-05-31] update | Strip $ prices from course vault files (Rule 5 enforcement)
+
+- Phase 3 classifier flagged a BCLS+AED conversation where Cassie hallucinated $163.50 from the vault after a tool failure. Vault is now the only source of truth for prices that contradicted the tool — fixed by removing all $ amounts so vault can't be the source of drift.
+- Verified all 19 priced courses ARE retrievable from CATS before stripping (gate condition Mark set).
+- Found 7 of 19 vault prices were STALE — Basic Makeup, Children's Hair Cutting, Eyelash, Sake, Basic Computer all drifted (pre-GST vs CATS GST-inclusive); Hair Cutting Women (#OL90) + Men (#OL91) have been merged in CATS into a single SKU #OL93. Vault was actively misleading on these.
+- Files edited (5):
+  - `wiki/courses/first-aid/first-aid-courses.md` — stripped $ from all 5 entries (BCLS+AED, Child First Aid Blended Eng/Chi, Child First Aid Refresher Eng/Chi). Replaced with "Funding: No subsidy." line + header note pointing to `get_course_schedule`.
+  - `wiki/courses/beauty/beauty-courses.md` — stripped $ from 5 entries. Deleted obsolete OL90 + OL91 entries, added merged OL93 entry. Added CATS canonical names for OL87/OL92/OL88 (drift-aware).
+  - `wiki/courses/ms-office/ms-office-courses.md` — stripped $ from Copilot Workshop (#AB51A). Renamed from "Copilot Training Workshop" to "Copilot Workshop" to match CATS.
+  - `wiki/courses/other/other-courses.md` — stripped $ from Sake (#OL78) and Basic Computer (#OL68).
+  - `wiki/courses/baking-cooking/private-workshops.md` — stripped $ from all 6 workshops (Cookie, Shio Pan, Dumpling, Donuts, Pasta, Mooncake).
+- Bumped `last_updated: 2026-05-31` on all 5 files.
+- Verification: `grep \$\d wiki/courses/` returns zero hits.
+- Government scheme constants ($500 SFC baseline, $4000 mid-career top-up, $750 UTAP cap) left alone in funding/ and policies/ — those are MOE/SSG/NTUC facts, not Coursemology fees, and aren't a Rule 5 risk.
+
+---
+
 ## [2026-05-29] update | Phase 3 deploy-day fixes — gateway overlay + rolling window + review-priority reframe
 
 - **Deploy hit two real-world issues that ship-day audit didn't predict, plus a product reframe on Mark's intuition.** Documented here in order of when they surfaced.

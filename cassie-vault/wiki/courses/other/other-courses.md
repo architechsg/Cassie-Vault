@@ -1,18 +1,18 @@
 ---
 tags: [course, other, private, non-wsq, sake, computer]
-last_updated: 2026-05-08
+last_updated: 2026-05-31
 ---
 
 # Other Courses
 
-Miscellaneous courses that don't fit a primary category.
+Miscellaneous courses that don't fit a primary category. Call `get_course_schedule` for live pricing.
 
 ---
 
 ## Sake Appreciation Workshop (#OL78) — Private
 - **OLA module_id:** 2233
 - **Duration:** 0.5 day (3 hours)
-- **Price:** $140.00 (no subsidy)
+- **Funding:** No subsidy.
 - **Type:** Private workshop
 
 ---
@@ -20,7 +20,7 @@ Miscellaneous courses that don't fit a primary category.
 ## Basic Computer Course (#OL68) — Non-WSQ
 - **OLA module_id:** 2448
 - **Duration:** 2 hours, 7pm – 9pm
-- **Price:** $30.00 (no subsidy)
+- **Funding:** No subsidy.
 - **Type:** Non-WSQ
 - **Note:** Evening class format
 
