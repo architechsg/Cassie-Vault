@@ -5,6 +5,75 @@ Types: `ingest`, `query`, `lint`, `update`
 
 ---
 
+## [2026-05-31] update | Deep-dive meticulous V4 cleanup of all 47 enriched vault entries
+
+- **Trigger:** Mark spotted that the previous cleanup pass still had truncation (cleaning-courses.md being "cut off"). Asked for a deep, meticulous pass.
+- **Switched extraction strategy** from flat-text regex to **BS4 HTML walker**: parse the gutena-tabs `wp-block-gutena-tab` divs, walk each panel's siblings forward from each `<h2>/<h3>` heading, collect `<p>/<ul>/<ol>` content until a hard-stop heading (Mode of Assessment / Certification / Pre-requisites / Locations / Languages / Course Details / etc.). Skip-but-don't-stop on cross-promo h2 bleeds (Office Management Skills, Effectiveness Management, etc.).
+- **Cross-panel fallback heading search**: some courses put Course Objectives in the Course Introduction panel rather than Course Outline (e.g. Excel Basic). V4 searches both panels for each section.
+- **Sentence-boundary truncation**: cuts at `[.!?] ` boundaries (or `;` / ` ` as fallback), never mid-word. Cap raised 400–500 → 600–900 chars per field.
+- **Polish pass** stripped: leading title-repeats (e.g. BCLS bullet used to start "BCLS (CPR + AED) Course This course aims..." → now "This course aims..."), trailing "Visit this page for more X courses in Singapore." UI tails, "View the X here" cross-promo, double-period before "Examples:".
+- **Final audit:** 27 vault blocks now have rich website-sourced content; **18 of 27 have all 5 fields** (What you'll learn / Course modules / Who should attend / Prerequisites / Assessment & certification); 6 have 4 fields; 3 have 3 fields. **Zero remaining noise** in any bullet (no more "certified with a combined", no "Visit this page", no "Course Provider: UEN:" boilerplate, no title-repeats). 13 vault blocks have no enriched content — those are the Private courses (Cookie, Mooncake, Sake, Eyelash, Hair-cutting variants, Child First Aid, Copilot private, Drone bundle, Malay food safety) without public website detail pages.
+- **Specific verifications:**
+  - `food-safety-level-1-english.md` Assessment still verbatim from website: "1.5-hour assessment... Practical Performance (PP)... MCQ + SAQ" — matches Mark's BCLS-test reference.
+  - `first-aid/first-aid-courses.md` BCLS Course modules is now correctly "Adult CPR; Adult Relief; Child CPR; Child Relief; Infant CPR; Infant Relief; AED" — the cross-promo "Office Management Skills" bleed is gone permanently.
+  - `cleaning/cleaning-courses.md` — all 7 WSQ cleaning courses have full content with proper module breakdowns.
+  - `ms-office/ms-office-courses.md` — Excel Basic (AB22) had originally been thin because the page puts Objectives in the Intro tab; V4's cross-panel search now picks it up properly.
+- **Approach scripts:** `/tmp/v4_extract.py` (the BS4 walker), `/tmp/v4_apply.py` (vault writer), `/tmp/final_audit.py` (verification). Raw HTML snapshots in `/tmp/cm_data/raw/*.html` if a fresh re-extract is ever needed.
+
+---
+
+## [2026-05-31] update | Cleanup pass on contaminated Course Content bullets (Mark's BCLS exam test caught the issue)
+
+- **Trigger:** Mark tested local Cassie with "Food Safety Level 1 — what's the exam?" Cassie's reply said "3 parts: MCQ, SAQ, PP — pass all three". Mark checked and pushed back. Investigated and found the vault's "Assessment / certification" bullet was contaminated: cut off mid-sentence at "1." and bled into instructor-bio text ("certified with a combined 20 years of culinary experience..."). The actual website says: **"1.5-hour assessment comprising a Practical Performance (PP) and a Written Assessment. The Written Assessment includes both MCQ and SAQ."** Two parts, not three. Cassie had reframed it incorrectly because vault content was garbage.
+- **Scope of contamination:** Audited all 47 enriched entries. ~40 of them had similar bleed in the Assessment bullet — pulling in "Venue(s): Toa Payoh Central...", "Language: English", "Course Outline...", "Course Provider: ASSOCIATES CONSULTING...", "certified with a combined 20 years..." (instructor bios), TGS codes, UENs, etc. Pattern: the original regex stopped at section-paragraph boundaries that don't exist in the WordPress page DOM.
+- **Cleanup pass executed:**
+  - Built a much stricter section-boundary regex (`Venue(s):`, `Language:`, `Course Outline`, `Course Details`, `Minimum Entry`, `Pre-requisites`, `Admission Requirements`, `Course Provider`, `certified with a combined`, `Visit this page`, `Schedule a class`, etc.).
+  - New extractor pulls Assessment content from the "Course Outline" tab's `Mode of Assessment` subsection specifically, then truncates at the first boundary hit.
+  - Re-injected ONE clean block per course; removed the contaminated old bullets.
+  - Bug along the way: my first dedup regex looked for colon AFTER `**` markers, but markdown has colon INSIDE (`**What you'll learn:**`). Fixed and re-ran; cleaned 5-14 contaminated bullets per entry across all 27 catch-all blocks.
+  - Final pass: deleted 4 specific Course modules bullets that were obvious cross-promo bleed (BCLS had "Course modules: Office Management Skills" from the page's related-courses sidebar; similar for admin-hr, ev-car, cleaning).
+- **Specific fix on the BCLS-trigger:** `food-safety-level-1-english.md` now has accurate Assessment line: "At the end of the course, participants will undergo a 1.5-hour assessment. This assessment comprises a Practical Performance (PP) and a Written Assessment. The Written Assessment includes both Multiple-Choice Questions (MCQ) and Short Answer Questions (SAQ)..." Matches the website verbatim. Cassie should no longer say "3 parts".
+- **Bullet schema standardised:** Every entry now has up to 5 clean bullets: `What you'll learn` / `Course modules` / `Who should attend` / `Prerequisites` / `Assessment & certification`. (Renamed from `Assessment / certification` to `Assessment & certification` — slash was confusing in some regex matches.)
+- **Remaining quality risks** (not yet cleaned, lower priority): some entries still have truncated content mid-sentence at the 400-500 char cap; some "Who should attend" sections cut off at "Examples of roles that should attend" before listing the actual roles; raw content is still website prose not rephrased to Cassie's voice. Catchable by Phase 3 classifier in production grading.
+
+---
+
+## [2026-05-31] verify | CATS-check of the 10 unmatched website pages — all confirmed duplicates, zero vault adds needed
+
+- **Why:** After the bulk course-content backfill, 10 website pages had no matching vault entry. Mark's rule: website is golden source — so any website page that exists in CATS should become a vault entry.
+- **Method:** For each of the 10 unmatched website slugs, called `get_course_schedule` via the CATS MCP tool. Compared returned course code to existing vault entries.
+- **Result:** ZERO new vault adds needed. Every CATS-confirmed match pointed to a course vault already has.
+  - `automation-management-generative-ai-chatbots2` — text identical to v1; vault has #AT52.
+  - `basic-car-maintenance-course` (title "EV Maintenance") — CATS returns #AT22A "Basic Car w/ Hands-on"; vault has it.
+  - `caas-uapl-drone-course-singapore` — same Course Introduction text as the drone-photography slug; vault has #CT11.
+  - `employment-111-manpower` — not a course (B2B/manpower page).
+  - `food-hygiene-refresher-course` — not in CATS directly (old naming); vault has #AT13 L1 Refresher.
+  - `implement-work-plans-and-monitor-performance` — CATS returns #AB33 DCMP L3; vault has it.
+  - `microsoft-excel-2019` — legacy/deprecated page; vault has AB22/23/24.
+  - `professional-makeup-essentials-singapore` — CATS returns #AB82; vault has it.
+  - `wsq-food-safety-level-1-mandarin-course` — vault has Mandarin Food Safety L1.
+  - `basic-computer-course-senior-citizens` — already auto-mapped to OL68 in earlier pass.
+- **Insight for Mark (not a vault issue):** the website has SEO/marketing-driven duplicate slugs for the same underlying course (common WordPress pattern). Three slugs (`employment-111-manpower`, `microsoft-excel-2019`, `food-hygiene-refresher-course`) are legacy pages with no CATS match — they should probably be cleaned up on the website side or redirected. Suggest raising with Weixing/website team.
+
+---
+
+## [2026-05-31] ingest | Course content backfill from coursemology.sg (47 of 62 vault entries enriched)
+
+- **Why:** Vault course entries were skeletal (title + code + duration + funding). Cassie couldn't answer "what does this course teach?" or "is there an exam?" Weixing confirmed: content from website, prices/schedules from CATS, structural metadata from vault. This pass adds the missing course-content layer.
+- **Method:** Scraped all 71 course-detail pages on coursemology.sg (gutena-tabs blocks: Course Introduction / Course Outline / Requirements / FAQs). 56 of 71 returned real content (15 are 404/duplicate/redirect slugs). Matched to vault entries by course code (catch-all blocks) or hand-curated slug map (single-course files).
+- **Outcome:** 47 of 62 vault course entries enriched with 4 new bullet fields:
+  - `**What you'll learn:**` — course objectives / learning outcomes
+  - `**Who should attend:**` — target audience
+  - `**Prerequisites:**` — entry requirements
+  - `**Assessment / certification:**` — how learners are graded + what credential they receive
+- **15 vault entries left unchanged** (no website detail page): Private courses without public pages — Child First Aid Blended/Refresher (Eng + Chi), Cookie Baking, Handcrafted Mooncake, Sake Appreciation, Basic Makeup Workshop, Eyelash Extension, Hair Cutting Children/Infant, Hair Cutting Men+Women, Copilot Workshop Private, Drone Bundle, Malay Food Safety variant.
+- **10 website pages had no matching vault entry** — mostly duplicates (Excel 2019, Food Hygiene Refresher, multiple makeup/manpower slugs, automation-chatbots2). Tally report at outputs/COURSE_BACKFILL_REPORT.md for Mark's review — discussion needed on which (if any) deserve new vault entries.
+- **Files modified (30):** All 9 catch-all course files (admin-hr, beauty, cleaning, drone-media, ecommerce, first-aid, ms-office, other, private-workshops), all 8 food-safety single-course files, all 5 maintenance single-course files, all 3 baking-cooking single-course files (dim-sum-delights, basic-peranakan-cuisines, artisan-decorative-breads), all 5 ai-tech single-course files.
+- **Known noise:** Some "Assessment / certification" bullets have trailing bleed from the website's Course Details / FAQ panels (regex couldn't always find the section boundary cleanly). Content is raw website prose, not yet rephrased into Cassie's warm-but-concise voice. Truncation cap 400-500 chars per field — some content cut mid-sentence. All cleanup-able in a follow-up pass; doesn't block answering most questions correctly today.
+- **Vault size impact:** System prompt was ~28K tokens before. Each enriched block adds ~1.5-2K chars. Catch-all files grew most: cleaning-courses.md 4KB → 14KB, beauty-courses.md 2KB → 5KB. Net vault growth ~50K chars (~13K tokens). System prompt now ~41K tokens; still well under context window but worth monitoring cache_read efficiency.
+
+---
+
 ## [2026-05-31] update | Persona Rule 3 tightened + server loop-guard bumped (Excel-PSEA failure mode fix)
 
 - **Smoke test surfaced a real failure:** `"Is the Excel basic course PSEA eligible?"` → Cassie made 3 tool calls in a row (`Excel Basic` → fail, `Workplace Productivity using Excel Basic` → fail, `Excel` → ambiguous with 3 matches), then server's loop guard fired with "I ran into a loop trying to answer that."
