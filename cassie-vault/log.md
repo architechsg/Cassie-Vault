@@ -5,6 +5,96 @@ Types: `ingest`, `query`, `lint`, `update`
 
 ---
 
+## [2026-06-12] update | First weekly reviewer-feedback review → 4 persona fixes + server tool-description alignment
+
+- Pulled weekly digest from `chatbot.h5.sg/admin/weekly-export` (10 reviewer-graded chats, 7-day window). Patterns found: scrubber firing on `https://myskillsfuture.gov.sg` in 4/10 chats (leaving broken "Log in to  with Singpass" text); canned "Great question!" opener verbatim in 5/10 chats (hardcoded twice in persona); tool `found:false` failures from query phrasing ("Food Safety Level 1 English", bare "AT11E", "first aid"/"CPR"/"BCLS"); dead-end rephrase requests after tool failure on clear-intent queries.
+- Live CATS probes grounded the fixes: "Basic Cardiac Life Support" works (classes 11 Jul, 26 Aug) while "first aid"/"BCLS"/"CPR" all fail; "Food Safety Level 1 Chinese" works but "...English" fails (English variant unsuffixed); "#AT11E" fails. The week's first-aid chats lost real bookings purely to query phrasing.
+- `cassie-persona.md` edits: (1) new "Referring to external websites" section in Booking Links — bare domain only, never `https://`/`www.` (scrubber strips those); (2) opener fixes — "Great question!" banned, first sentence ≤10 words, 3 example shapes in Rule 0, compose-fresh-each-conversation rule (Haiku anchors hard on single examples); (3) Rule 2 query phrasing rules — never "English"/bare codes in `course_query`, alias map (first aid/CPR/BCLS → Basic Cardiac Life Support, food hygiene → Food Safety Level 1); (4) Rule 3 `found:false` handler split by intent clarity — clear intent gets warm WhatsApp soft fallback instead of useless rephrase request; retry budget defined as one alternative attempt per user message, resets on new user message.
+- `cassie-deploy/app/server.py`: `course_query` tool-description updated to match Rule 2 (was instructing "include level or language" — directly caused the English-suffix failures).
+- Tested via API harness (claude-haiku-4-5, new persona, stubbed tool): 5/5 scenarios pass — no https:// in SFC reply (bare myskillsfuture.gov.sg used), openers short + no "Great question", "english" absent from tool queries, CPR → Basic Cardiac Life Support expansion with booking token surfaced, clear-intent double-failure → WhatsApp fallback in ≤2 tool calls with no rephrase ask. Known residual: Haiku still anchors openers to the "Happy to help…" family (length fixed, full variation would need server-side nudge).
+- NOT yet deployed — server restart needed to pick up persona + tool description. Outstanding from this review: refresher-eligibility vault question escalated to the team (reviewer says refresher repeatable; vault says once only — chat 847356000008509010 graded 1/5); chat 847356000008554003 hallucinated-token verification; rubric calibration notes.
+
+---
+
+## [2026-06-09] update | Refreshed feedback-loop architecture doc + rendered PDF
+
+- Updated `cassie-deploy/misc/feedback-loop-architecture.html` (was May-25 vintage, treated Phases 1–4 as planned). New version: header tagged "Phases 1–4 LIVE since 2026-06-01"; Section 3 retitled "Daily / Weekly Feedback Loop"; loop steps reordered to actual cron sequence Phase 2 aggregator (09:00 SGT) → Phase 3 grader (09:30 SGT) → Phase 4 Lark push (10:00 SGT) per `docker/crontab`; step 4 now correctly attributes the push to `push_to_lark.py` + `selector.py` tier-then-fill (~5 chats/day) instead of the obsolete "top 10–15 worst-per-topic + outcome-regret"; added `classifier_reasoning` column to the `conversations` schema card.
+- Added rubric explainer covering the 2026-06-01 redesign: Novelty / Drift / Coverage-Value three-signal scoring, `total_turns` + `contained_booking_link` metadata header, Floor 2 / Floor 3 promotion rules, novelty-or-drift precedence override, and the regrade distribution shift {1×4, 1×2, 22×1} → {1×4, 4×3, 7×2, …}.
+- Phase 5 framing changed from "deferred" to "intentionally deferred — reassess after ~1 week of reviewer signal".
+- Rendered `feedback_loop_architecture.pdf` (A4 landscape, 3 pages) at workspace root next to `cassie_architecture.pdf`.
+
+---
+
+## [2026-06-08] query | Produced architecture PDF of Cassie's tool-call flow
+
+- Generated `cassie_architecture.pdf` (4 pages) at workspace root: page 1 = labelled SVG diagram (Visitor → SalesIQ Zobot → cassie_server.py → Claude Haiku → CATS API → booking-link rehydration → SalesIQ render); pages 2–4 = 12-step prose walkthrough plus design-rationale and file/endpoint reference tables.
+- Source-of-truth code read for the walkthrough: `cassie-deploy/app/server.py` (input guards, classifier, reply loop with 5 tool rounds, `execute_get_course_schedule`, `_scrub_urls`, `_substitute_booking_tokens`, db_logger). Booking-token indirection (Cassie sees `[[BOOK_<run_id>]]`, server rehydrates to markdown link) called out explicitly as the key design trick.
+- No code or vault changes.
+
+---
+
+## [2026-06-06] update | Phase 1 (SalesIQ pre-chat form + auto-Contact creation) LIVE; Lead Source tagging deferred
+
+- **Configured via Claude in Chrome with Mark driving decisions in real time.**
+- **SalesIQ pre-chat form configured** on Coursemology brand: Form Style = Conversation, Online Fields = Email (optional) + Phone (optional). Both skippable to keep friction near-zero. Saved.
+- **SalesIQ → Zoho CRM integration confirmed Active**, configured to push to **Contacts module** (not Leads — chosen for consistency with existing utm_chat=cassie booking-flow pattern). Default field mappings already covered Email → Email and Last Name → Last Name (SalesIQ auto-falls-back to email prefix when no Name field captured, which solved the "Zoho requires Last Name" problem cleanly). Added manual mapping: SalesIQ Phone → CRM Mobile (auto-saved).
+- **Smoke test PASSED**: Mark tested with x@me.com, Contact appeared in Zoho CRM with Contact Name = "x" (email prefix fallback), Email = x@me.com, Lead Source = "Chat", Traffic Source = Direct. End-to-end capture works.
+- **Lead Source tagging as "Cassie" deferred** — turns out coursemology.sg has a SECOND chat bot that operates 8am-8pm (separate from Cassie) that ALSO writes Lead Source = "Chat" via the same SalesIQ integration. So a blanket workflow rule converting "Chat" → "Cassie" would over-attribute. Clean solutions explored: (a) JS API customfield on Cassie's widget embed only — works IF Cassie and the other bot are on separate widgets, needs Weixing to add 1 line; (b) Phase 3 server-side via cassie_server.py update_visitor API — most accurate, ~1 day code. Mark's call: leave it for now, discuss with bosses whether to pursue Phase 2 (persona Rule 7 for in-chat capture) and Phase 3 (server changes + db) at all.
+- **Net result of Phase 1**: every visitor who opens Cassie widget AND fills the pre-chat form gets a Zoho Contact created with their Email + Phone. Live agents can find these via Lead Source = "Chat" custom view (will include the 8am-8pm bot's captures too — acceptable since both are warm leads).
+- **Documents**: `cassie-lead-capture-plan.md` (5-phase plan, decisions captured); SalesIQ Flow Controls saved; Zoho CRM integration field mapping saved.
+
+---
+
+## [2026-06-05] query | Lead-capture initiative — deep-dive plan drafted, presented for Mark's review
+
+- **Trigger**: Mark presented Cassie's progress to the Coursemology team; they're now actively using the feedback loop. He flagged that out of ~140 weekly conversations only 4 booking submissions happened — wants Cassie to start capturing email/phone/name and pushing to Zoho as Leads so live agents can follow up on the people who don't click through.
+- **Dashboard pull (today, /admin/dashboard)**: 22 convos today; **link rate 36.4%** (Cassie only surfaces a booking link in ~1 in 3 convos); tool rate 40.9%; Cassie deals 0 yesterday, ~0.4/day 7d avg. Implication: there are TWO leaks — Cassie underlinks (persona issue) AND captured visitors don't convert (lead capture issue). Plan addresses both.
+- **Plan saved to** `cassie-lead-capture-plan.md` (workspace root). Five phases: (1) Native SalesIQ Pre-Chat Form + SalesIQ↔CRM integration = zero-code high-leverage Zoho Lead auto-creation; (2) Persona Rule 7 — in-chat capture as soft secondary KPI, service-framing tone, single-ask rule; (3) Server-side regex capture + push to SalesIQ visitor record via REST API (preferred over direct Zoho CRM write because it reuses Phase 1 mapping and avoids dup-Lead races with the existing WordPress-form Contact creation); (4) Parallel persona pass to lift the 36% link rate — Rule 6 tightening; (5) Schema migration + dashboard/Lark queue surfacing of capture metrics.
+- **Mark's decisions captured in the plan**: Lead (not Contact) for the Zoho object; lead capture is a primary KPI but tone must stay non-pushy; PDPA covered by site-wide notice (no in-chat consent prompt needed); "4 booking links" = 4 submitted form bookings, not link sends.
+- **Key research finding**: the native Zoho lead-capture feature Mark heard about is the **SalesIQ Pre-Chat Form + SalesIQ↔Zoho CRM integration** — works *alongside* webhook-mode Cassie (the codeless-bot "Add Lead" integration card is incompatible with how Cassie is built). This is the lowest-effort first move and is the foundation Phases 2-3 build on.
+- **Next step for Mark**: read `cassie-lead-capture-plan.md`, push back on Phase 2 persona-tone wording, then green-light Phase 1 (he can configure it himself in the Zoho admin UI without needing Weixing).
+
+---
+
+## [2026-06-01] update | Reviewer guide v2 — updated to reflect new three-signal scoring rubric
+
+- **Source**: `cassie-deploy/misc/reviewer-guide.html` updated. PDF generated at `cassie-deploy/misc/reviewer-guide.pdf` (7 pages, 51KB) for distribution to reviewers.
+- **What changed**: (1) added "Updated 2026-06-01 (v2)" tag in page subtitle; (2) Section 2 (the 10am AI scoring stage) now explains the three signals — drift / novelty / coverage value — instead of just "priority 1-5"; (3) Section 3 Auto Grade column expanded to show what each grade typically means; (4) Section 5 rubric fully rewritten so the human grade descriptions align with the AI rubric, particularly the new 2 = "coverage sample" anchor and 3 = "deep substantive thread" anchor; (5) Section 5 callouts gained a "three signals stack but don't multiply" rule of thumb; (6) Section 6 FAQ added a new entry for "Why am I seeing chats where Cassie didn't do anything wrong?" (explains the intentional coverage sampling).
+- **Why this matters for reviewers**: under the old rubric, reviewers mostly saw failures. Under the new rubric they'll start seeing routine pricing/funding chats as grade 2 coverage samples and deep multi-turn threads as grade 3. Without the guide update, they'd be confused by "why is this in my queue, Cassie did fine". The guide now explains this is intentional and tells them to skim-and-close (1-sentence comment is enough).
+- **Action for Mark**: share the new PDF with Coursemology team reviewers. The old PDF (if any was previously distributed) should be considered superseded.
+
+## [2026-06-01] update | All 4 phases of feedback loop live; Phase 5 deferred; review queue running under new rubric
+
+- **Confirmed live in production**: Phase 1 (logging) + Phase 2 (daily aggregator) + Phase 3 (nightly classifier/grader v3 with coverage-value rubric) + Phase 4 (Lark Base review queue + push_to_lark 10:00 SGT cron). Lark credentials in `.env`. Today's 10am cron pushed 2 records pre-rubric-fix; post-fix manual push will land another ~5.
+- **--force regrade on last 24h confirmed working**: distribution shifted from {1×4, 1×2, 22×1} → {1×4, 4×3, 7×2, rest×1}. Deep multi-turn pricing/funding threads now score 3 instead of 1, exactly per the COVERAGE VALUE / Floor 3 design.
+- **Plan from here**: run the loop for ~1 week (reviewers grade in Lark, Phase 4.5 weekly export pulls grades back into cassie_db), then decide what's next. Phase 5 (per-conversation Zoho attribution) intentionally **deferred** — the right next move could be Phase 5, a rubric calibration, a weekly digest, or a vault edit driven by what reviewers flag. Decide with data, not a plan.
+- **Calibration items tracked but not blocking**: (1) an 18-turn schedule chat with a booking link scored 2 instead of 3 — Haiku may be treating "schedule" as too routine to qualify for Floor 3; (2) a 2-turn funding chat stayed at 1 — Floor 2 on funding topic didn't fire, likely Haiku discounted it as too thin despite the topic floor. Both are mild. Revisit after a week of reviewer data shows whether they matter in practice.
+- **Topic classification drift to watch**: denser rubric prompt nudged Haiku to reclassify some deep "schedule" threads as "pricing" (because pricing was the dominant subthread). Not wrong, but dashboard topic counts and topic-filtered queries will look different vs pre-2026-06-01. Worth a glance at `/admin/dashboard` after a few days to see if the new shape feels more or less useful than the old one.
+
+## [2026-06-01] update | Grader rubric redesign — coverage-value signal so reviewer queue exposes more conversation types
+
+- **Problem surfaced by Mark**: of 19 conversations in the last 24h, only 2 made it to the Lark review queue (a Rule 3 violation scored 4, and a schedule chat scored 2). Multi-turn substantive conversations were getting graded 1 across the board — a 30-turn registration thread with a booking link, a 27-turn pricing thread, an 18-turn schedule thread, all scored 1. Mark's diagnosis (correct): the grader's NOVELTY + DRIFT rubric ignores COVERAGE VALUE — i.e. the queue isn't surfacing enough samples of how visitors actually engage Cassie on different topics, only Cassie's failures.
+- **Fix landed in `cassie-deploy/app/nightly_review.py`**: rubric now uses three signals — (A) NOVELTY, (B) DRIFT, **(C) COVERAGE VALUE**. Coverage value floors substantive chats above 1 so they make it into the reviewer queue as samples even when Cassie handled them correctly.
+- **Floors added explicitly to the rubric**:
+  - **Floor 2** when ANY of: total_turns ≥ 6 AND topic not in {casual_greeting, off_topic}; contained_booking_link is true; topic in {pricing, funding, refund_cancel, corporate, complaint} (lower volume / higher stakes).
+  - **Floor 3** when total_turns ≥ 10 AND topic not in {casual_greeting, off_topic} — deep substantive thread is a teaching sample regardless of correctness.
+  - Drift + novelty still raise above the floors. Floors don't cap, they only prevent skip-review on substantive content.
+- **Anchors rewritten**: score 1 is now narrower ("thin low-engagement exchange handled fine"); score 2 absorbs substantive-but-routine for coverage; score 3 absorbs deep routine (10+ turns) or small drift; 4 and 5 unchanged.
+- **Metadata header surfaced to grader**: added `total_turns` and `contained_booking_link` to the SELECT in both `fetch_conversations_to_review` and `fetch_conversations_in_window`, and embed them as a `CONVERSATION FACTS` block above the transcript so Haiku applies the floors deterministically rather than counting `[USER]` lines. `review_conversation()` signature gained optional kwargs so the local test harness still works unchanged.
+- **Test harness extended (`cassie-deploy/test_grader_local.py`)**: new `DEEP_ROUTINE_CONVERSATION` synthetic — 12-turn pricing → SkillsFuture → UTAP → booking thread Cassie handled correctly throughout. Under the old rubric this would have scored 1 (routine + well-handled). Under the new rubric it should score 3 via Floor 3 (turns ≥ 10 + pricing topic). `run_one` now infers metadata from the synthetic and passes it through. CLI gained `--conv deep`.
+- **Verification next**: Mark to push `cassie-deploy`, then on prod run `docker compose exec cassie_cron python -m app.nightly_review --force --dry-run --lookback-hours 24` to preview the new scores for today's 19 conversations BEFORE committing them to cassie_db. Expectation: ~8–10 records will jump from 1 → 2/3, giving the Lark queue the 4–5/day diversity Mark wants. If the rubric overshoots (too many 4/5s), tighten the COVERAGE VALUE signals so they only push to 2/3, never 4/5.
+- **Risk acknowledged**: prompt-cache prefix may be partially invalidated since the RUBRIC_AND_OUTPUT block (last in the prefix) changed substantially. First call after deploy pays full freight; subsequent calls in the batch warm the cache again. Negligible cost impact at ~10 chats/day.
+
+## [2026-05-31] update | Lark Base Phase 4 provisioned end-to-end via Claude in Chrome
+
+- **Provisioned the Cassie Review Queue Lark Base** at architech.sg.larksuite.com base `Tdz7bIfsAamvNys8YRXlnPMrgAe`, table `tblue9XhtrKZPVDw`. Renamed the table from `Table` → `Reviews`.
+- **Built all 9 fields** per `cassie-deploy/misc/LARK_BASE_SETUP_GUIDE.md`: Conversation ID (Text, primary), Date (DateTime with GMT+8 timezone), Topic (Single Option, 10 taxonomy values: registration/pricing/funding/schedule/location/refund_cancel/corporate/complaint/off_topic/casual_greeting), Auto Grade (Number, Nearest integer), Booking Link Surfaced (Checkbox), Transcript (Text), Reviewer Grade (Number, Nearest integer), Reviewer Comment (Text), Status (Single Option, 4 values: Unreviewed/In Progress/Reviewed/Archived, default = Unreviewed).
+- **Reviewer-facing view design corrected from the original plan**: the setup guide previously called for a Lark "Form view" as a record-at-a-time grading screen, but Lark Form views are public submission forms for *new* records, not editors for existing ones. Replaced with a filtered Grid view called `Review Queue`: filter `Status is not Reviewed AND Status is not Archived`, sort `Auto Grade descending`. Reviewers click a row → side panel opens → edit Reviewer Grade/Comment/Status → close → row drops out of view automatically. Updated `LARK_BASE_SETUP_GUIDE.md` Step 5 + Step 9 to reflect this.
+- **Caveat surfaced**: `Conversation ID` is Lark's primary field and cannot be hidden from any view. Reviewers will see it but should ignore it.
+- **Status colors auto-assigned by Lark** — not the gray/yellow/green/blue palette the guide suggested. Cosmetic only; left as-is.
+- **Env vars now known** (record privately, not in the vault): `LARK_BASE_TOKEN=Tdz7bIfsAamvNys8YRXlnPMrgAe`, `LARK_TABLE_ID=tblue9XhtrKZPVDw`. `LARK_APP_ID` + `LARK_APP_SECRET` still need to be grabbed from the Cassie Review Bot app credentials page.
+- **Action for Mark**: (1) verify the Cassie Review Bot custom app is added as a Base collaborator with Edit permission (guide Step 6 — critical, easy to miss), (2) grab `LARK_APP_ID` + `LARK_APP_SECRET` from open.larksuite.com/app, (3) test from the Lark API Explorer per guide Step 8, (4) then we can wire the env vars into Plesk and do a `--dry-run --limit 2` push from `app/push_to_lark.py`.
+
 ## [2026-05-31] update | Deep-dive meticulous V4 cleanup of all 47 enriched vault entries
 
 - **Trigger:** Mark spotted that the previous cleanup pass still had truncation (cleaning-courses.md being "cut off"). Asked for a deep, meticulous pass.
