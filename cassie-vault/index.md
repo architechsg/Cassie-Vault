@@ -36,7 +36,7 @@
 | [[funding/skillsfuture-credit]] | How to claim SFC; must claim before class start using TGS code |
 | [[funding/mid-career-sfc]] | Mid-Career Enhanced SFC top-up ($4,000); separate approved course list; confirm eligibility before registering |
 | [[funding/utap-ntuc]] | NTUC members: 50% co-funding, capped $250/yr |
-| [[funding/corporate-funding]] | Absentee Payroll, ETSS, SFEC for companies |
+| [[funding/corporate-funding]] | Absentee Payroll, ETSS (up to 70% for our courses), SFEC, EIS for companies |
 | [[funding/pricing-tiers]] | How GST + subsidy combine; worked example |
 | [[funding/corporate-invoicing]] | Invoice format (ATT/AB/CT-OLA-XXXXX), payment terms, GST, how to pay corporate invoices |
 

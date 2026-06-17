@@ -1,6 +1,6 @@
 ---
 tags: [faq, registration, booking]
-last_updated: 2026-05-24
+last_updated: 2026-06-15
 ---
 
 # FAQ — Registration & Booking
@@ -24,7 +24,7 @@ A: Contact us at hello@coursemology.sg or WhatsApp 9866 0772. If you cancel more
 A: Yes, submit a reschedule request at least 7 days before class. Your deposit transfers to the new date. A $16.35 admin fee may apply but is rarely charged. See [[policies/reschedule-policy]].
 
 **Q: I'm registering my employees. How do I do a corporate booking?**
-A: Use the "Corporate Booking" button on the course page, or contact us directly. See [[funding/corporate-funding]] for available subsidies.
+A: Start a corporate enquiry at coursemology.sg/corporate-enquiry/, or just share your company name, UEN, and a contact person (name, email, phone) and the corporate team will set it up for you. Corporate registration is handled by our corporate team, not the individual self-checkout. Corporate sales WhatsApp: 8899 1945. See [[funding/corporate-funding]] for available subsidies.
 
 **Q: What information do I need to provide when registering for a WSQ course?**
 A: For WSQ/SkillsFuture-funded courses, you'll need to provide your full name (as per NRIC), NRIC/FIN/Passport number, date of birth, nationality, gender, race, address, mobile, email, job designation, monthly salary, and highest education level. This is required for the SSG grant claim. See [[concepts/wsq-registration-data]] for the full list.

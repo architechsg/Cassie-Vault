@@ -24,7 +24,7 @@ A: Yes, Singapore PRs aged 21+ qualify for the PR subsidy (~30% off the full fee
 A: If you are an NTUC union member, yes. UTAP provides up to 50% co-funding on your remaining out-of-pocket fees, capped at $250/year. Most WSQ courses are UTAP-eligible. See [[funding/utap-ntuc]].
 
 **Q: My company wants to sponsor me. What funding is available?**
-A: SME-sponsored employees can get up to 90% subsidy (ETSS). Companies also qualify for Absentee Payroll ($4.50/hr) and SkillsFuture Enterprise Credit. See [[funding/corporate-funding]].
+A: SME-sponsored employees can get up to 70% subsidy (ETSS) on our courses. (The up-to-90% rate applies only to courses run by universities, polytechnics, ITE and CET Centres, not Coursemology.) ETSS and Absentee Payroll ($4.50/hr) are for Singapore Citizens and PRs only. Companies may also qualify for SkillsFuture Enterprise Credit (SFEC) and the Enterprise Innovation Scheme (EIS, which covers 20% of remaining fees after subsidies and SFEC). See [[funding/corporate-funding]].
 
 **Q: What if I miss more than 25% of classes?**
 A: You will not be eligible for SSG funding and may be charged the full course fee. See [[policies/attendance-requirements]].

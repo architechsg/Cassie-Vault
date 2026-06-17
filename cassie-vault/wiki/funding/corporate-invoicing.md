@@ -1,6 +1,6 @@
 ---
 tags: [funding, corporate, sme, invoicing, payment]
-last_updated: 2026-05-08
+last_updated: 2026-06-15
 ---
 
 # Corporate Invoicing — For SME & Company-Sponsored Trainees
@@ -30,7 +30,7 @@ When referencing an invoice with Coursemology staff, use this full invoice numbe
 
 ## Payment Terms
 
-Standard payment terms are **Immediate** (payment due upon invoice). Some companies may have pre-arranged credit terms (30-day or 14-day). If you need to discuss payment terms, contact the Coursemology sales team.
+Standard payment terms are **Immediate** (payment due upon invoice). For credit terms or any other commercial terms request, contact the corporate training consultant (corporate sales WhatsApp 8899 1945 or hello@coursemology.sg).
 
 ## What the Invoice Covers
 
@@ -43,7 +43,7 @@ Each line on the invoice corresponds to one employee's enrolment in a class. The
 
 ## GST
 
-All invoiced amounts are subject to **9% GST** unless the company or student is exempt. GST is computed on the course fee before any discounts.
+All invoiced amounts are subject to **9% GST** unless the company or student is exempt. GST is computed on the **net course fee after any discount, but before subsidy** — a discount lowers the GST, while a government subsidy lowers the fee payable but not the GST.
 
 ## How to Pay
 
@@ -51,13 +51,13 @@ Payment can be made via:
 - **Bank transfer** to the issuing entity's bank account (details on the invoice)
 - **PayNow** (PayNow details on the invoice)
 
-After payment, please send proof of transfer to **hello@coursemology.sg** or WhatsApp **9866 0772** with the invoice number.
+After payment, please send proof of transfer to **hello@coursemology.sg** or corporate sales WhatsApp **8899 1945** with the invoice number.
 
 ## Missing or Incorrect Invoice?
 
-Contact the Coursemology team:
+Contact the corporate team:
 - **Email:** hello@coursemology.sg
-- **WhatsApp:** 9866 0772
+- **Corporate sales WhatsApp:** 8899 1945
 
 ## Related
 - [[funding/corporate-funding]] — Absentee Payroll, ETSS, and SFEC subsidies for companies

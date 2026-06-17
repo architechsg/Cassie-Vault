@@ -1,6 +1,6 @@
 ---
 tags: [company, contact]
-last_updated: 2026-05-08
+last_updated: 2026-06-15
 ---
 
 # Contact Details
@@ -23,7 +23,11 @@ last_updated: 2026-05-08
 Monday to Sunday, 8:30am – 6:00pm. Closed on Public Holidays.
 
 ## Corporate Training Enquiries
-For customised on-site training or corporate bookings: https://coursemology.sg/corporate-training/
+For customised on-site training or corporate bookings, start at the corporate enquiry form (coursemology.sg/corporate-enquiry/), or see the corporate training info page (coursemology.sg/corporate-training/).
+- **Corporate sales WhatsApp:** 8899 1945
+- **Email:** hello@coursemology.sg
+
+(Note: the general WhatsApp 9866 0772 above is for individual/general enquiries; corporate enquiries go to the corporate sales line 8899 1945.)
 
 ## Related
 - [[company/locations]] — full addresses
